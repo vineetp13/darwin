@@ -1,9 +1,11 @@
 
 from random import randint
 
+print "**************************"
+
 #TODO-write how to use this code
 
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 10
 
 #number of players
 N = 10
@@ -31,6 +33,7 @@ V = 10
 #populate all the values above
 for i in range(0,N):
     f[i] = (i+1)*1.0/N #hack to ensure fractional part is taken
+    #TODO-change deno value above..
     c[i] = C
     v[i] = V
 
@@ -45,6 +48,9 @@ value = [0.00] * N
 #cost incurred by "i"th in providing feedback
 cost = [0.00] * N
 
+#Store sum of payoffs and people kicked out to see correlations
+sums_all = [0] * NUM_ITERATIONS
+kicked_all = [-1] * NUM_ITERATIONS
 
 for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
@@ -61,7 +67,7 @@ for ii in range(0,NUM_ITERATIONS):
             value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
-        print i, "   ", chosen_few
+        #print i, "   ", chosen_few
 
     #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
@@ -110,10 +116,11 @@ for ii in range(0,NUM_ITERATIONS):
     v[min_player] *= (1.0)/sum_p
     p[min_player] = 0.0
     #print f[min_player], c[min_player], v[min_player], "after div"
-    print "****"
+    ##print "****"
 
     print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
     print f, "entire freuqnecy array"
+    print count, "entire count array"
 
     #TODO-now, clear out the values for next iteration
     #TODO-maybe we want to store the round by round details - think?
@@ -123,8 +130,22 @@ for ii in range(0,NUM_ITERATIONS):
         count[i] = 0.0
 
 
+    sums_all[ii] = sum_p
+    kicked_all[ii] = min_player
+
 
 #Now repeat the whole experiment again with NUM_ITERATIONS loop above
+#print "%.2f" % sums_all
+#print sums_all
+#print kicked_all
+
+for i in range(0,NUM_ITERATIONS):
+    print sums_all[i]
+    print kicked_all[i]
+    print " |"
+    print " |"
+    print "\ /"
+
 
 #TODO-potential optimizations
 #1. use numpy/scipy
