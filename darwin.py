@@ -1,6 +1,10 @@
 
 from random import randint
 
+#TODO-write how to use this code
+
+NUM_ITERATIONS = 2
+
 #number of players
 N = 10
 #number of folks receiving feedback
@@ -41,7 +45,6 @@ value = [0.00] * N
 #cost incurred by "i"th in providing feedback
 cost = [0.00] * N
 
-NUM_ITERATIONS = 10
 
 for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
@@ -53,11 +56,11 @@ for ii in range(0,NUM_ITERATIONS):
                 chosen = randint(0,N-1)
             chosen_few[j] = chosen
             # and (chosen not in chosen_few)): cannot provide feedback to self and to someone else already provided feedback to
-            print count[chosen], value[chosen], cost [i], "count, value, cost"
+            #print count[chosen], value[chosen], cost [i], "count, value, cost"
             count[chosen]+=1 #increment number of feedback received by chosen
             value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
-            print count[chosen], value[chosen], cost [i], "count, value, cost"
+            #print count[chosen], value[chosen], cost [i], "count, value, cost new"
         print i, "   ", chosen_few
 
     #TODO-ensure all default values are not crappy or wrong
@@ -71,40 +74,54 @@ for ii in range(0,NUM_ITERATIONS):
     sum_p = 0
 
     for i in range(0,N):
-        print p[i], value[i], cost[i], "<-- p[i]"
+        #print p[i], value[i], cost[i], "<-- p[i]"
         p[i] = value[i] - cost[i];
-        print p[i], "<-- p[i]"
+        #print p[i], "<-- p[i]"
         avg_score[i] = value[i]/l
         sum_p += p[i]
         if p[i] < min:
             min = p[i]
             min_player = i
 
-    print sum_p, "<-- sum_p"
+    #print sum_p, "<-- sum_p"
     print "min_player is", min_player
     sum_p = sum_p - p[min_player] #take min_player out of probability distribution
     print sum_p, "<-- sum_p"
 
     print p, "entire payoff array"
-    print f[min_player], c[min_player], v[min_player], "details of min_player before"
+    print f[min_player], c[min_player], v[min_player], p[min_player],"details of min_player before"
+
+    f[min_player] = 0
+    c[min_player] = 0
+    v[min_player] = 0
 
     #TODO-replace the min_player with a new player using a probability distribution over the remaining folks
     for i in range(0,N):
-        f[min_player] = 0
-        c[min_player] = 0
-        v[min_player] = 0
         if (i != min_player):
+            #print i, "inside"
+            #print f[i],c[i],v[i], p[i], "f,c,v,p[i]"
             f[min_player] += f[i]*p[i]
-            f[min_player] /= sum_p
             c[min_player] += c[i]*p[i]
-            c[min_player] /= sum_p
             v[min_player] += v[i]*p[i]
-            v[min_player] /= sum_p
+            #print f[min_player], c[min_player], v[min_player], "inside loop"
+    #print f[min_player], c[min_player], v[min_player], "before div"
+    f[min_player] *= (1.0)/sum_p
+    c[min_player] *= (1.0)/sum_p
+    v[min_player] *= (1.0)/sum_p
+    p[min_player] = 0.0
+    #print f[min_player], c[min_player], v[min_player], "after div"
+    print "****"
 
-    print f[min_player], c[min_player], v[min_player], "details of min_player now"
+    print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
+    print f, "entire freuqnecy array"
 
     #TODO-now, clear out the values for next iteration
     #TODO-maybe we want to store the round by round details - think?
+    for i in range(0,N):
+        value[i] = 0.0
+        cost[i] = 0.0
+        count[i] = 0.0
+
 
 
 #Now repeat the whole experiment again with NUM_ITERATIONS loop above
