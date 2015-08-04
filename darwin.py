@@ -9,10 +9,14 @@ print "**************************"
 NUM_ITERATIONS = 1
 
 #number of players
-N = 10
+N = 15
 
 #number of folks receiving feedback
-k = 3
+k = 10
+
+#threshold to decide whether you will see feedbacks or not
+#TODO-this will affect the payoffs - make note of that - and edit payoffs accordingly
+l = 2
 
 #frequency of providing feedback
 f = [0.00] * N
@@ -77,10 +81,21 @@ feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
 for i in range(0,k):
     feedback_flag=1
     while(feedback_flag==1):
+        print i
         feedback_matrix[i] = np.random.permutation(N)
 #TODO-check if same number has been assigned by chance
         for jj in range(0,N):
-            if(feedback_matrix[i][jj]==jj):
+#TODO-ensure that you dont give feedback to same player across rounds
+            cur_list = [-1] * (i+1)
+            for iii in range(1,i+1):
+                cur_list[iii] = feedback_matrix[iii-1][jj] #this list contains the elements chosen for the same player so far
+            print "!!!!!!!"
+            bool_check = feedback_matrix[i][jj] in cur_list
+            print cur_list, feedback_matrix[i][jj], bool_check
+
+            print "!!!!!"
+            if((feedback_matrix[i][jj]==jj) or bool_check): #jj player cannot provide feedback to itself
+                print bool_check
                 feedback_flag=1
             else:
                 feedback_flag=0
@@ -91,6 +106,7 @@ for i in range(0,k):
 print "$$$4"
 
 #TODO-have clear metrics variables - and named so
+#TODO-maybe use numpy, scipy for performance
 
 for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
@@ -187,7 +203,7 @@ for ii in range(0,NUM_ITERATIONS):
                 max = i
     #Now we have the players with min and max payoffs, so divide up the number line
 
-    #TODO-check if i have negative payof values and to handle them...
+    #TODO-check if i have negative payoff values and to handle them...
     #currently assuming positive values only, not using "start" and "end"
     start = 0
     end = p[max]-p[min]
