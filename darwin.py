@@ -1,5 +1,6 @@
 
 from random import randint
+import numpy as np #for random.permutation
 
 print "**************************"
 
@@ -53,15 +54,56 @@ cost = [0.00] * N
 sums_all = [0] * NUM_ITERATIONS
 kicked_all = [-1] * NUM_ITERATIONS
 
+#TODO-remove all variables not being used
+
+#TODO-create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
+#TODO-check if doing this ensures there are no negative payoffs
+
+feedback_matrix = [-1] * k
+for i in range(0,k):
+    feedback_matrix[i] = [-1] * N
+
+count_feedback = [0] * N # how many feedbacks has ith player received
+
+for i in range(0,k):
+    for j in range(0,N):
+        feedback_matrix[i][j] = j
+    print feedback_matrix[i]
+
+print "####"
+
+feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
+
+for i in range(0,k):
+    feedback_flag=1
+    while(feedback_flag==1):
+        feedback_matrix[i] = np.random.permutation(N)
+#TODO-check if same number has been assigned by chance
+        for jj in range(0,N):
+            if(feedback_matrix[i][jj]==jj):
+                feedback_flag=1
+            else:
+                feedback_flag=0
+
+for i in range(0,k):
+    print feedback_matrix[i]
+
+print "$$$4"
+
+#TODO-have clear metrics variables - and named so
+
 for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
         #choose l number of recipients randomly to provide feedback to
         chosen_few = [-1] * k
         for j in range(0,k):
-            chosen = randint(0,N-1)
-            while(chosen in chosen_few or chosen==i):
-                chosen = randint(0,N-1)
+            #TODO-dont need to do the chosen crap anymore - can just delete this during code clean up
+            #chosen = randint(0,N-1)
+            #while(chosen in chosen_few or chosen==i):# or count_feedback[chosen]==k):
+            #    chosen = randint(0,N-1)
+            chosen = feedback_matrix[j][i]
             chosen_few[j] = chosen
+            count_feedback[chosen] +=1
             # and (chosen not in chosen_few)): cannot provide feedback to self and to someone else already provided feedback to
             #print count[chosen], value[chosen], cost [i], "count, value, cost"
             count[chosen]+=1 #increment number of feedback received by chosen
@@ -69,6 +111,7 @@ for ii in range(0,NUM_ITERATIONS):
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
         print i, "   ", chosen_few
+    print count_feedback
 
     #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
