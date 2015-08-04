@@ -5,10 +5,10 @@ print "**************************"
 
 #TODO-write how to use this code
 
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 2
 
 #number of players
-N = 10
+N = 1000
 #number of folks receiving feedback
 l = 3
 
