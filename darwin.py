@@ -5,12 +5,13 @@ print "**************************"
 
 #TODO-write how to use this code
 
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 1
 
 #number of players
-N = 1000
+N = 10
+
 #number of folks receiving feedback
-l = 3
+k = 3
 
 #frequency of providing feedback
 f = [0.00] * N
@@ -32,7 +33,7 @@ V = 10
 
 #populate all the values above
 for i in range(0,N):
-    f[i] = (i+1)*1.0/N #hack to ensure fractional part is taken
+    f[i] = (i)*1.0/N #hack to ensure fractional part is taken
     #TODO-change deno value above..
     c[i] = C
     v[i] = V
@@ -55,8 +56,8 @@ kicked_all = [-1] * NUM_ITERATIONS
 for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
         #choose l number of recipients randomly to provide feedback to
-        chosen_few = [-1] * l
-        for j in range(0,l):
+        chosen_few = [-1] * k
+        for j in range(0,k):
             chosen = randint(0,N-1)
             while(chosen in chosen_few or chosen==i):
                 chosen = randint(0,N-1)
@@ -67,7 +68,7 @@ for ii in range(0,NUM_ITERATIONS):
             value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
-        #print i, "   ", chosen_few
+        print i, "   ", chosen_few
 
     #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
@@ -75,49 +76,104 @@ for ii in range(0,NUM_ITERATIONS):
     avg_score = [-1] * N
     #Now: choose who dies based on lowest payoff value
 
-    min = 10000 #randomly selected high number
-    min_player = -1
+
+    #min = 10000 #randomly selected high number
+    min_player = randint(0,N-1)
     sum_p = 0
 
     for i in range(0,N):
         #print p[i], value[i], cost[i], "<-- p[i]"
         p[i] = value[i] - cost[i];
         #print p[i], "<-- p[i]"
-        avg_score[i] = value[i]/l
+        avg_score[i] = value[i]/k
         sum_p += p[i]
-        if p[i] < min:
-            min = p[i]
-            min_player = i
+
+#When min_player was being chosen according to lowest payoff, now choosing it randomly at the end of the comment block
+ #       if p[i] < min:
+  #          min = p[i]
+   #         min_player = i
 
     #print sum_p, "<-- sum_p"
     print "min_player is", min_player
-    sum_p = sum_p - p[min_player] #take min_player out of probability distribution
+
+    #TODO-fix sum_p when you account for taking out min_player from the distribution
+    #sum_p = sum_p - p[min_player] #take min_player out of probability distribution
     print sum_p, "<-- sum_p"
 
     print p, "entire payoff array"
     print f[min_player], c[min_player], v[min_player], p[min_player],"details of min_player before"
 
+#TODO-following three lines are redundant
     f[min_player] = 0
     c[min_player] = 0
     v[min_player] = 0
 
     #TODO-replace the min_player with a new player using a probability distribution over the remaining folks
-    for i in range(0,N):
-        if (i != min_player):
-            #print i, "inside"
-            #print f[i],c[i],v[i], p[i], "f,c,v,p[i]"
-            f[min_player] += f[i]*p[i]
-            c[min_player] += c[i]*p[i]
-            v[min_player] += v[i]*p[i]
-            #print f[min_player], c[min_player], v[min_player], "inside loop"
+
+    #This weighted approach is wrong
+    #for i in range(0,N):
+     #   if (i != min_player):
+      #      #print i, "inside"
+       #     #print f[i],c[i],v[i], p[i], "f,c,v,p[i]"
+       #     f[min_player] += f[i]*p[i]
+        #    c[min_player] += c[i]*p[i]
+         #   v[min_player] += v[i]*p[i]
+          #  #print f[min_player], c[min_player], v[min_player], "inside loop"
     #print f[min_player], c[min_player], v[min_player], "before div"
-    f[min_player] *= (1.0)/sum_p
-    c[min_player] *= (1.0)/sum_p
-    v[min_player] *= (1.0)/sum_p
-    p[min_player] = 0.0
+    #f[min_player] *= (1.0)/sum_p
+    #c[min_player] *= (1.0)/sum_p
+    #v[min_player] *= (1.0)/sum_p
+    #p[min_player] = 0.0
     #print f[min_player], c[min_player], v[min_player], "after div"
     ##print "****"
 
+    #TODO-use multiline comments preserving indentation - not fixing it right now
+
+    #choosing new min_player using a prob distribution over existing players
+    #TODO-not doing it entirely correctly now, since the two end points (min and max) have almost no chance of being chosen - How to fix
+        #Maybe the above will be auto fixed when the algo ensures everyone receives feedback ensuring that no one has negative payoffs
+    #TODO - skip current min_player
+
+    min = 0
+    max = 0
+    for i in range(0,N):
+        if(i!=min_player):
+            if p[i]<p[min]:
+                min = i
+            if p[i]>p[max]:
+                max = i
+    #Now we have the players with min and max payoffs, so divide up the number line
+
+    #TODO-check if i have negative payof values and to handle them...
+    #currently assuming positive values only, not using "start" and "end"
+    start = 0
+    end = p[max]-p[min]
+
+    #TODO-currently the dist_array includes the current min_player, this needs to be tweaked out - but it's okay right now  - easy to fix
+    distr_array = [0] * N #this array stores the end-point for ith player to be chosen
+    distr_array[0] = p[0]
+    for i in range(1,N):
+        distr_array[i] = p[i] + distr_array[i-1]
+
+    print "distr_array is ", distr_array
+
+    for i in range(0,N-1):
+        print distr_array[i+1] - distr_array[i]
+
+    #now get a random number in the range of the number line (0,sum_p) and see where it fails
+    toss = randint(0,int(sum_p))
+    print "toss is", toss
+    min_player_new = -1
+
+    for i in range(0,N):
+        if toss < distr_array[i]:
+            min_player_new = i
+            break
+
+    min_player = min_player_new
+    print "new min_player is", min_player
+
+    #now we have our new min_player
     print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
     print f, "entire freuqnecy array"
     print count, "entire count array"
