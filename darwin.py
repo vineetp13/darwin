@@ -1,6 +1,12 @@
 
 from random import randint
 import numpy as np #for random.permutation
+import logging as lawg
+
+lawg.basicConfig(
+    level=lawg.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s')
+lawg.debug('This is a log message.')
 
 print "**************************"
 
@@ -9,14 +15,14 @@ print "**************************"
 NUM_ITERATIONS = 100
 
 #number of players
-N = 10
+N = 1000
 
 #number of folks receiving feedback
-k = 3
+k = 10
 
 #threshold to decide whether you will see feedbacks or not
 #TODO-this will affect the payoffs - make note of that - and edit payoffs accordingly
-l = 2
+l = 9
 
 #frequency of providing feedback
 f = [0.00] * N
@@ -106,9 +112,6 @@ def create_feedback_matrix():
                     feedback_flag=1
                 else:
                     feedback_flag=0
-
-for i in range(0,k):
-    print feedback_matrix[i]
 
 print "$$$$"
 
@@ -293,7 +296,7 @@ for ii in range(0,NUM_ITERATIONS):
 print final_freq_matrix
 
 for i in range(0,NUM_ITERATIONS):
-    print i, sums_all[i]
+    lawg.debug (i, sums_all[i])
     print kicked_all[i], replacers[i]
     print final_freq_matrix[i]
     #print " |"
