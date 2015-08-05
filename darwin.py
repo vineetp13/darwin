@@ -6,7 +6,7 @@ print "**************************"
 
 #TODO-write how to use this code
 
-NUM_ITERATIONS = 1
+NUM_ITERATIONS = 100
 
 #number of players
 N = 10
@@ -57,6 +57,10 @@ cost = [0.00] * N
 #Store sum of payoffs and people kicked out to see correlations
 sums_all = [0] * NUM_ITERATIONS
 kicked_all = [-1] * NUM_ITERATIONS
+replacers = [-1] * NUM_ITERATIONS
+final_freq_matrix = [-1] * NUM_ITERATIONS
+for i in range(0,NUM_ITERATIONS):
+    final_freq_matrix[i] = [-1] * N
 
 #TODO-remove all variables not being used
 
@@ -76,41 +80,48 @@ for i in range(0,k):
 
 print "####"
 
-feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
+#feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
 
-for i in range(0,k):
-    feedback_flag=1
-    while(feedback_flag==1):
-        #v print i
-        feedback_matrix[i] = np.random.permutation(N)
-#TODO-check if same number has been assigned by chance
-        for jj in range(0,N):
-#TODO-ensure that you dont give feedback to same player across rounds
-            cur_list = [-1] * (i+1)
-            for iii in range(1,i+1):
-                cur_list[iii] = feedback_matrix[iii-1][jj] #this list contains the elements chosen for the same player so far
-            #v print "!!!!!!!"
-            bool_check = feedback_matrix[i][jj] in cur_list
-            #v print cur_list, feedback_matrix[i][jj], bool_check
 
-            #v print "!!!!!"
-            if((feedback_matrix[i][jj]==jj) or bool_check): #jj player cannot provide feedback to itself
-                #v print bool_check
-                feedback_flag=1
-            else:
-                feedback_flag=0
+def create_feedback_matrix():
+    for i in range(0,k):
+        feedback_flag=1
+        while(feedback_flag==1):
+            #v print i
+            feedback_matrix[i] = np.random.permutation(N)
+            #print "permuuuuuu", feedback_matrix[i]
+    #TODO-check if same number has been assigned by chance
+            for jj in range(0,N):
+    #TODO-ensure that you dont give feedback to same player across rounds
+                cur_list = [-1] * (i+1)
+                for iii in range(1,i+1):
+                    cur_list[iii] = feedback_matrix[iii-1][jj] #this list contains the elements chosen for the same player so far
+                #v print "!!!!!!!"
+                bool_check = feedback_matrix[i][jj] in cur_list
+                #v print cur_list, feedback_matrix[i][jj], bool_check
+
+                #v print "!!!!!"
+                if((feedback_matrix[i][jj]==jj) or bool_check): #jj player cannot provide feedback to itself
+                    #v print bool_check
+                    feedback_flag=1
+                else:
+                    feedback_flag=0
 
 for i in range(0,k):
     print feedback_matrix[i]
 
-print "$$$4"
+print "$$$$"
 
 #TODO-have clear metrics variables - and named so
 #TODO-maybe use numpy, scipy for performance
 
+#TODO-dont call it min_player - its not min_player bro
+
 for ii in range(0,NUM_ITERATIONS):
+    print "ITERATION ##########", ii
+    create_feedback_matrix() #create new feedback matrix for every iteration
     for i in range(0,N):
-        #choose l number of recipients randomly to provide feedback to
+        #choose k number of recipients randomly to provide feedback to
         chosen_few = [-1] * k
         for j in range(0,k):
             #TODO-dont need to do the chosen crap anymore - can just delete this during code clean up
@@ -126,8 +137,9 @@ for ii in range(0,NUM_ITERATIONS):
             value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
-        print i, "   ", chosen_few
-    print count_feedback
+        #v print i, "   ", chosen_few
+    #print count_feedback
+    #print feedback_matrix
 
     #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
@@ -167,19 +179,20 @@ for ii in range(0,NUM_ITERATIONS):
 
     print "number of players who passed and failed threshold are", pass_l_threshold, fail_l_threshold
     #print sum_p, "<-- sum_p"
-    print "min_player is", min_player
+    #v print "min_player is", min_player
 
     #TODO-fix sum_p when you account for taking out min_player from the distribution
     #sum_p = sum_p - p[min_player] #take min_player out of probability distribution
-    print sum_p, "<-- sum_p"
+    ##print sum_p, "<-- sum_p"
 
-    print p, "entire payoff array"
-    print f[min_player], c[min_player], v[min_player], p[min_player],"details of min_player before"
+    #v print p, "entire payoff array"
+    #v print f, "frequency array"
+    #v print f[min_player], c[min_player], v[min_player], p[min_player],"details of min_player before"
 
 #TODO-following three lines are redundant
-    f[min_player] = 0
-    c[min_player] = 0
-    v[min_player] = 0
+    #f[min_player] = 0
+    #c[min_player] = 0
+    #v[min_player] = 0
 
     #TODO-replace the min_player with a new player using a probability distribution over the remaining folks
 
@@ -228,14 +241,14 @@ for ii in range(0,NUM_ITERATIONS):
     for i in range(1,N):
         distr_array[i] = p[i] + distr_array[i-1]
 
-    print "distr_array is ", distr_array
+    ##print "distr_array is ", distr_array
 
     #for i in range(0,N-1):
      #   print distr_array[i+1] - distr_array[i]
 
     #now get a random number in the range of the number line (0,sum_p) and see where it fails
     toss = randint(0,int(sum_p))
-    print "toss is", toss
+    ##print "toss is", toss
     min_player_new = -1
 
     for i in range(0,N):
@@ -243,11 +256,16 @@ for ii in range(0,NUM_ITERATIONS):
             min_player_new = i
             break
 
-    min_player = min_player_new
-    print "new min_player is", min_player
+    #min_player = min_player_new
+    #v print "new min_player is", min_player_new
+
+    #assign the min_player the chosen guys value
+    f[min_player] = f[min_player_new]
+    c[min_player] = c[min_player_new]
+    v[min_player] = v[min_player_new]
 
     #now we have our new min_player
-    print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
+    #v print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
     print f, "entire freuqnecy array"
     #print count, "entire count array"
 
@@ -261,6 +279,9 @@ for ii in range(0,NUM_ITERATIONS):
 
     sums_all[ii] = sum_p
     kicked_all[ii] = min_player
+    replacers[ii] = min_player_new
+    final_freq_matrix[ii] = f
+    print final_freq_matrix[ii]
 
 
 #Now repeat the whole experiment again with NUM_ITERATIONS loop above
@@ -268,12 +289,16 @@ for ii in range(0,NUM_ITERATIONS):
 #print sums_all
 #print kicked_all
 
+#TODO-fix final_freq_matrix storing+printing..
+print final_freq_matrix
+
 for i in range(0,NUM_ITERATIONS):
-    print sums_all[i]
-    print kicked_all[i]
-    print " |"
-    print " |"
-    print "\ /"
+    print i, sums_all[i]
+    print kicked_all[i], replacers[i]
+    print final_freq_matrix[i]
+    #print " |"
+    #print " |"
+    #print "\ /"
 
 
 #TODO-potential optimizations
