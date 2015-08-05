@@ -9,10 +9,10 @@ print "**************************"
 NUM_ITERATIONS = 1
 
 #number of players
-N = 15
+N = 10
 
 #number of folks receiving feedback
-k = 10
+k = 3
 
 #threshold to decide whether you will see feedbacks or not
 #TODO-this will affect the payoffs - make note of that - and edit payoffs accordingly
@@ -72,7 +72,7 @@ count_feedback = [0] * N # how many feedbacks has ith player received
 for i in range(0,k):
     for j in range(0,N):
         feedback_matrix[i][j] = j
-    print feedback_matrix[i]
+    #v print feedback_matrix[i]
 
 print "####"
 
@@ -81,7 +81,7 @@ feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
 for i in range(0,k):
     feedback_flag=1
     while(feedback_flag==1):
-        print i
+        #v print i
         feedback_matrix[i] = np.random.permutation(N)
 #TODO-check if same number has been assigned by chance
         for jj in range(0,N):
@@ -89,13 +89,13 @@ for i in range(0,k):
             cur_list = [-1] * (i+1)
             for iii in range(1,i+1):
                 cur_list[iii] = feedback_matrix[iii-1][jj] #this list contains the elements chosen for the same player so far
-            print "!!!!!!!"
+            #v print "!!!!!!!"
             bool_check = feedback_matrix[i][jj] in cur_list
-            print cur_list, feedback_matrix[i][jj], bool_check
+            #v print cur_list, feedback_matrix[i][jj], bool_check
 
-            print "!!!!!"
+            #v print "!!!!!"
             if((feedback_matrix[i][jj]==jj) or bool_check): #jj player cannot provide feedback to itself
-                print bool_check
+                #v print bool_check
                 feedback_flag=1
             else:
                 feedback_flag=0
@@ -140,9 +140,22 @@ for ii in range(0,NUM_ITERATIONS):
     min_player = randint(0,N-1)
     sum_p = 0
 
+    pass_l_threshold = 0
+    fail_l_threshold = 0
+
+#calculating payoff values in p[i]
     for i in range(0,N):
         #print p[i], value[i], cost[i], "<-- p[i]"
-        p[i] = value[i] - cost[i];
+        #payoff calculation changes with the introduction of parameter l
+        ##print "original cost", cost [i]
+        #p[i] = value[i] - cost[i];
+        if (cost[i] > l):
+            #then the player crosses our threshold of providing feedback
+            p[i] = value[i] - cost[i]
+            pass_l_threshold +=1
+        else:
+            p[i] = 0
+            fail_l_threshold += 1
         #print p[i], "<-- p[i]"
         avg_score[i] = value[i]/k
         sum_p += p[i]
@@ -152,6 +165,7 @@ for ii in range(0,NUM_ITERATIONS):
   #          min = p[i]
    #         min_player = i
 
+    print "number of players who passed and failed threshold are", pass_l_threshold, fail_l_threshold
     #print sum_p, "<-- sum_p"
     print "min_player is", min_player
 
@@ -216,8 +230,8 @@ for ii in range(0,NUM_ITERATIONS):
 
     print "distr_array is ", distr_array
 
-    for i in range(0,N-1):
-        print distr_array[i+1] - distr_array[i]
+    #for i in range(0,N-1):
+     #   print distr_array[i+1] - distr_array[i]
 
     #now get a random number in the range of the number line (0,sum_p) and see where it fails
     toss = randint(0,int(sum_p))
@@ -235,7 +249,7 @@ for ii in range(0,NUM_ITERATIONS):
     #now we have our new min_player
     print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
     print f, "entire freuqnecy array"
-    print count, "entire count array"
+    #print count, "entire count array"
 
     #TODO-now, clear out the values for next iteration
     #TODO-maybe we want to store the round by round details - think?
