@@ -4,18 +4,20 @@ import numpy as np #for random.permutation
 import logging as lawg
 
 lawg.basicConfig(
+    filename='log_filename.txt',
     level=lawg.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s')
+    format=' %(message)s')
+    #format='%(asctime)s - %(levelname)s - %(message)s')
 lawg.debug('This is a log message.')
 
 print "**************************"
 
 #TODO-write how to use this code
 
-NUM_ITERATIONS = 100
+NUM_ITERATIONS = 10
 
 #number of players
-N = 1000
+N = 100
 
 #number of folks receiving feedback
 k = 10
@@ -296,7 +298,7 @@ for ii in range(0,NUM_ITERATIONS):
 print final_freq_matrix
 
 for i in range(0,NUM_ITERATIONS):
-    lawg.debug (i, sums_all[i])
+    lawg.debug("'{0}', '{1}'".format(i, sums_all[i])) #(i, sums_all[i])
     print kicked_all[i], replacers[i]
     print final_freq_matrix[i]
     #print " |"
