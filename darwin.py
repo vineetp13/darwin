@@ -1,44 +1,38 @@
 
 from random import randint
 import numpy as np #for random.permutation
-import logging as lawg
+import logging as log
 
-lawg.basicConfig(
-    filename='log_filename.txt',
-    level=lawg.DEBUG,
-    format=' %(message)s')
+log.basicConfig(
+    filename='results.TEXT',
+    level=log.DEBUG,
+    format=' %(message)s',
+    filemode='w')
     #format='%(asctime)s - %(levelname)s - %(message)s')
-lawg.debug('This is a log message.')
+log.debug('This is a log message.')
 
-print "**************************"
+log.info("**************************")
 
-#TODO-write how to use this code
-
-NUM_ITERATIONS = 10
-
-#number of players
-N = 100
-
-#number of folks receiving feedback
-k = 10
+#*******************************
+NUM_ITERATIONS = 1
+N = 10 #number of players
+k = 3 #number of folks receiving feedback
 
 #threshold to decide whether you will see feedbacks or not
 #TODO-this will affect the payoffs - make note of that - and edit payoffs accordingly
 l = 9
 
+#*****************
+#Setting up frequency, cost, value arrays
+
 #frequency of providing feedback
 f = [0.00] * N
-
-#f = []
-#for i in range(N):
-
 #cost of providing feedback fpr "i"th player
 c = [0] * N
 #value of feedback of "i"th player
 v = [0] * N
-
 #payoff_value for players
-p = [0] * N
+payoff = [0] * N
 
 #if using constant values for Cost and Value of feedback for all players
 C = 1
@@ -46,14 +40,13 @@ V = 10
 
 #populate all the values above
 for i in range(0,N):
-    f[i] = (i)*1.0/N #hack to ensure fractional part is taken
+    f[i] = round((i)*1.0/N) #hack to ensure fractional part is taken
+    #log.debug(f[i]);
     #TODO-change deno value above..
     c[i] = C
     v[i] = V
 
 #TODO-how should I vary c and v above in interesting and useful ways
-
-#DONT NEED - matrix of N * L size showing who is being provided feedback
 
 #count of how many feedbacks has "i"th player received
 count = [0] * N
@@ -71,10 +64,9 @@ for i in range(0,NUM_ITERATIONS):
     final_freq_matrix[i] = [-1] * N
 
 #TODO-remove all variables not being used
+#***********************
 
 #TODO-create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
-#TODO-check if doing this ensures there are no negative payoffs
-
 feedback_matrix = [-1] * k
 for i in range(0,k):
     feedback_matrix[i] = [-1] * N
@@ -86,7 +78,7 @@ for i in range(0,k):
         feedback_matrix[i][j] = j
     #v print feedback_matrix[i]
 
-print "####"
+log.info("####")
 
 #feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
 
@@ -115,15 +107,15 @@ def create_feedback_matrix():
                 else:
                     feedback_flag=0
 
-print "$$$$"
+log.info("$$$$")
 
 #TODO-have clear metrics variables - and named so
 #TODO-maybe use numpy, scipy for performance
 
-#TODO-dont call it min_player - its not min_player bro
+#TODO-dont call it die_player - its not die_player bro
 
 for ii in range(0,NUM_ITERATIONS):
-    print "ITERATION ##########", ii
+    ##print "ITERATION ##########", ii
     create_feedback_matrix() #create new feedback matrix for every iteration
     for i in range(0,N):
         #choose k number of recipients randomly to provide feedback to
@@ -150,101 +142,92 @@ for ii in range(0,NUM_ITERATIONS):
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
 
     avg_score = [-1] * N
-    #Now: choose who dies based on lowest payoff value
 
-
-    #min = 10000 #randomly selected high number
-    min_player = randint(0,N-1)
+    # randomly selecting player to die
+    die_player = randint(0,N-1)
     sum_p = 0
 
     pass_l_threshold = 0
     fail_l_threshold = 0
 
-#calculating payoff values in p[i]
+#calculating payoff values in payoff[i]
     for i in range(0,N):
-        #print p[i], value[i], cost[i], "<-- p[i]"
-        #payoff calculation changes with the introduction of parameter l
+        #print payoff[i], value[i], cost[i], "<-- payoff[i]"
         ##print "original cost", cost [i]
-        #p[i] = value[i] - cost[i];
+        payoff[i] = value[i] - cost[i]
         if (cost[i] > l):
             #then the player crosses our threshold of providing feedback
-            p[i] = value[i] - cost[i]
             pass_l_threshold +=1
         else:
-            p[i] = 0
             fail_l_threshold += 1
-        #print p[i], "<-- p[i]"
         avg_score[i] = value[i]/k
-        sum_p += p[i]
-
-#When min_player was being chosen according to lowest payoff, now choosing it randomly at the end of the comment block
- #       if p[i] < min:
-  #          min = p[i]
-   #         min_player = i
-
+        sum_p += payoff[i]
     print "number of players who passed and failed threshold are", pass_l_threshold, fail_l_threshold
     #print sum_p, "<-- sum_p"
-    #v print "min_player is", min_player
 
-    #TODO-fix sum_p when you account for taking out min_player from the distribution
-    #sum_p = sum_p - p[min_player] #take min_player out of probability distribution
+    #TODO-fix sum_p when you account for taking out die_player from the distribution
+    #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
     ##print sum_p, "<-- sum_p"
 
     #v print p, "entire payoff array"
     #v print f, "frequency array"
-    #v print f[min_player], c[min_player], v[min_player], p[min_player],"details of min_player before"
+    #v print f[die_player], c[die_player], v[die_player], p[die_player],"details of die_player before"
 
 #TODO-following three lines are redundant
-    #f[min_player] = 0
-    #c[min_player] = 0
-    #v[min_player] = 0
+    #f[die_player] = 0
+    #c[die_player] = 0
+    #v[die_player] = 0
 
-    #TODO-replace the min_player with a new player using a probability distribution over the remaining folks
+    #TODO-replace the die_player with a new player using a probability distribution over the remaining folks
 
     #This weighted approach is wrong
     #for i in range(0,N):
-     #   if (i != min_player):
+     #   if (i != die_player):
       #      #print i, "inside"
-       #     #print f[i],c[i],v[i], p[i], "f,c,v,p[i]"
-       #     f[min_player] += f[i]*p[i]
-        #    c[min_player] += c[i]*p[i]
-         #   v[min_player] += v[i]*p[i]
-          #  #print f[min_player], c[min_player], v[min_player], "inside loop"
-    #print f[min_player], c[min_player], v[min_player], "before div"
-    #f[min_player] *= (1.0)/sum_p
-    #c[min_player] *= (1.0)/sum_p
-    #v[min_player] *= (1.0)/sum_p
-    #p[min_player] = 0.0
-    #print f[min_player], c[min_player], v[min_player], "after div"
+       #     #print f[i],c[i],v[i], payoff[i], "f,c,v,payoff[i]"
+       #     f[die_player] += f[i]*payoff[i]
+        #    c[die_player] += c[i]*payoff[i]
+         #   v[die_player] += v[i]*payoff[i]
+          #  #print f[die_player], c[die_player], v[die_player], "inside loop"
+    #print f[die_player], c[die_player], v[die_player], "before div"
+    #f[die_player] *= (1.0)/sum_p
+    #c[die_player] *= (1.0)/sum_p
+    #v[die_player] *= (1.0)/sum_p
+    #p[die_player] = 0.0
+    #print f[die_player], c[die_player], v[die_player], "after div"
     ##print "****"
 
     #TODO-use multiline comments preserving indentation - not fixing it right now
 
-    #choosing new min_player using a prob distribution over existing players
+    #choosing new die_player using a prob distribution over existing players
     #TODO-not doing it entirely correctly now, since the two end points (min and max) have almost no chance of being chosen - How to fix
         #Maybe the above will be auto fixed when the algo ensures everyone receives feedback ensuring that no one has negative payoffs
-    #TODO - skip current min_player
+    #TODO - skip current die_player
 
+#TODO-Payoffs can be negative: implies that the number line needs to be chosen wisely
     min = 0
     max = 0
+    log.debug("printing payoffs")
     for i in range(0,N):
-        if(i!=min_player):
-            if p[i]<p[min]:
+        if(i!=die_player):
+            if payoff[i]<payoff[min]:
                 min = i
-            if p[i]>p[max]:
+            if payoff[i]>payoff[max]:
                 max = i
+        log.debug(payoff[i])
     #Now we have the players with min and max payoffs, so divide up the number line
+
 
     #TODO-check if i have negative payoff values and to handle them...
     #currently assuming positive values only, not using "start" and "end"
     start = 0
-    end = p[max]-p[min]
+    end = payoff[max]-payoff[min]
 
-    #TODO-currently the dist_array includes the current min_player, this needs to be tweaked out - but it's okay right now  - easy to fix
+    #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
-    distr_array[0] = p[0]
+    distr_array[0] = payoff[0]
     for i in range(1,N):
-        distr_array[i] = p[i] + distr_array[i-1]
+        distr_array[i] = payoff[i] + distr_array[i-1]
 
     ##print "distr_array is ", distr_array
 
@@ -254,24 +237,24 @@ for ii in range(0,NUM_ITERATIONS):
     #now get a random number in the range of the number line (0,sum_p) and see where it fails
     toss = randint(0,int(sum_p))
     ##print "toss is", toss
-    min_player_new = -1
+    die_player_new = -1
 
     for i in range(0,N):
         if toss < distr_array[i]:
-            min_player_new = i
+            die_player_new = i
             break
 
-    #min_player = min_player_new
-    #v print "new min_player is", min_player_new
+    #die_player = die_player_new
+    #v print "new die_player is", die_player_new
 
-    #assign the min_player the chosen guys value
-    f[min_player] = f[min_player_new]
-    c[min_player] = c[min_player_new]
-    v[min_player] = v[min_player_new]
+    #assign the die_player the chosen guys value
+    f[die_player] = f[die_player_new]
+    c[die_player] = c[die_player_new]
+    v[die_player] = v[die_player_new]
 
-    #now we have our new min_player
-    #v print f[min_player], c[min_player], v[min_player], p[min_player], "details of min_player now"
-    print f, "entire freuqnecy array"
+    #now we have our new die_player
+    #v print f[die_player], c[die_player], v[die_player], p[die_player], "details of die_player now"
+    ####log.debug("'{0}'".format(f), "entire freuqnecy array")
     #print count, "entire count array"
 
     #TODO-now, clear out the values for next iteration
@@ -283,11 +266,12 @@ for ii in range(0,NUM_ITERATIONS):
 
 
     sums_all[ii] = sum_p
-    kicked_all[ii] = min_player
-    replacers[ii] = min_player_new
+    kicked_all[ii] = die_player
+    replacers[ii] = die_player_new
     final_freq_matrix[ii] = f
-    print final_freq_matrix[ii]
+    log.info("'{0}'".format(final_freq_matrix[ii]))
 
+log.debug("!!!!")
 
 #Now repeat the whole experiment again with NUM_ITERATIONS loop above
 #print "%.2f" % sums_all
@@ -295,12 +279,12 @@ for ii in range(0,NUM_ITERATIONS):
 #print kicked_all
 
 #TODO-fix final_freq_matrix storing+printing..
-print final_freq_matrix
+log.debug(final_freq_matrix)
 
 for i in range(0,NUM_ITERATIONS):
-    lawg.debug("'{0}', '{1}'".format(i, sums_all[i])) #(i, sums_all[i])
-    print kicked_all[i], replacers[i]
-    print final_freq_matrix[i]
+    log.debug("'{0}', '{1}'".format(i, sums_all[i])) #(i, sums_all[i])
+    log.debug("'{0}', '{1}'".format(kicked_all[i], replacers[i]))
+    log.debug("'{0}'".format(final_freq_matrix[i]))
     #print " |"
     #print " |"
     #print "\ /"
