@@ -14,7 +14,7 @@ log.basicConfig(
     format=' %(message)s',
     filemode='w')
     #format='%(asctime)s - %(levelname)s - %(message)s')
-log.debug('This is a log message.')
+#log.debug('This is a log message.')
 
 log.info("**************************")
 
@@ -26,6 +26,10 @@ TODOS: Performance
 TODOS: Readability
 1. Have clear metrics variables - and named so
 2. Remove all variables not being used
+3. #TODO-use multiline comments preserving indentation - not fixing it right now
+
+TODOS: Correctness:
+1. TODO-ensure all default values are not crappy or wrong
 
 TODOS: For fun
 1. Write a functional version eliminatng ALL the global variables
@@ -81,7 +85,17 @@ for i in range(0,NUM_ITERATIONS):
 
 #***********************
 
+#Metrics used
+metric_pass_l_threshold = [0] * NUM_ITERATIONS
+metric_fail_l_threshold = [0] * NUM_ITERATIONS
+
+
+#*******
+
 #Create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
+#k*n matrix, so, i-th column denotes who receives feedback from i-th player
+#Conditions: 1. Player cannot give feedback to self 2.In one round, any player should only receive k feedbacks (fromk unique players)
+#TODO-need to meet these conditions
 feedback_matrix = [-1] * k
 for i in range(0,k):
     feedback_matrix[i] = [-1] * N
@@ -95,6 +109,7 @@ log.info("####")
 
 feedback_flag = -1  #a value of 1 denotes that the list needs to be repermuted
 def create_feedback_matrix():
+#creates
     for i in range(0,k):
         feedback_flag=1
         while(feedback_flag==1):
@@ -119,22 +134,16 @@ def create_feedback_matrix():
                     feedback_flag=0
 log.info("$$$$")
 
-
+#Main loop in which a new feedback matrix is created for every iteration
 for ii in range(0,NUM_ITERATIONS):
     ##print "ITERATION ##########", ii
     create_feedback_matrix() #create new feedback matrix for every iteration
-    for i in range(0,N):
-        #choose k number of recipients randomly to provide feedback to
-        chosen_few = [-1] * k
+    #All the smartness is in create_feedback_matrix - I shouldnt need to do any checks below
+    for i in range(0,N): #for every player, decide whom would it give feedback to
+        #chosen_few = [-1] * k #choose k number of recipients randomly to provide feedback to
         for j in range(0,k):
-            #TODO-dont need to do the chosen crap anymore - can just delete this during code clean up
-            #chosen = randint(0,N-1)
-            #while(chosen in chosen_few or chosen==i):# or count_feedback[chosen]==k):
-            #    chosen = randint(0,N-1)
-            chosen = feedback_matrix[j][i]
-            chosen_few[j] = chosen
-            # and (chosen not in chosen_few)): cannot provide feedback to self and to someone else already provided feedback to
-            #print count[chosen], value[chosen], cost [i], "count, value, cost"
+            chosen = feedback_matrix[j][i] #TODO-clean this code, just lazy
+            #chosen_few[j] = chosen
             count[chosen]+=1 #increment number of feedback received by chosen
             value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
@@ -142,74 +151,37 @@ for ii in range(0,NUM_ITERATIONS):
         #v print i, "   ", chosen_few
     #print feedback_matrix
 
-    #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
-
-#TODO--does avg_score help with anything
-    avg_score = [-1] * N
 
     # randomly selecting player to die
     die_player = randint(0,N-1)
     sum_p = 0
 
-    pass_l_threshold = 0
-    fail_l_threshold = 0
-
-#calculating payoff values in payoff[i]
+    #calculating payoff values in payoff[i]
     for i in range(0,N):
-        #print payoff[i], value[i], cost[i], "<-- payoff[i]"
-        ##print "original cost", cost [i]
         payoff[i] = value[i] - cost[i]
         if (cost[i] >= l):
             #then the player crosses our threshold of providing feedback
-            pass_l_threshold +=1
+            metric_pass_l_threshold[ii] +=1
         else:
-            fail_l_threshold += 1
-        avg_score[i] = value[i]/k
+            metric_fail_l_threshold[ii] += 1
         sum_p += payoff[i]
-    print "number of players who passed and failed threshold are", pass_l_threshold, fail_l_threshold
-    #print sum_p, "<-- sum_p"
+    print "number of players who passed and failed threshold are", metric_pass_l_threshold[ii], metric_fail_l_threshold[ii]
 
     #TODO-fix sum_p when you account for taking out die_player from the distribution
     #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
     ##print sum_p, "<-- sum_p"
 
-    #v print p, "entire payoff array"
-    #v print f, "frequency array"
-    #v print f[die_player], c[die_player], v[die_player], p[die_player],"details of die_player before"
 
 #TODO-following three lines are redundant
     #f[die_player] = 0
     #c[die_player] = 0
     #v[die_player] = 0
 
-    #TODO-replace the die_player with a new player using a probability distribution over the remaining folks
-
-    #This weighted approach is wrong
-    #for i in range(0,N):
-     #   if (i != die_player):
-      #      #print i, "inside"
-       #     #print f[i],c[i],v[i], payoff[i], "f,c,v,payoff[i]"
-       #     f[die_player] += f[i]*payoff[i]
-        #    c[die_player] += c[i]*payoff[i]
-         #   v[die_player] += v[i]*payoff[i]
-          #  #print f[die_player], c[die_player], v[die_player], "inside loop"
-    #print f[die_player], c[die_player], v[die_player], "before div"
-    #f[die_player] *= (1.0)/sum_p
-    #c[die_player] *= (1.0)/sum_p
-    #v[die_player] *= (1.0)/sum_p
-    #p[die_player] = 0.0
-    #print f[die_player], c[die_player], v[die_player], "after div"
-    ##print "****"
-
-    #TODO-use multiline comments preserving indentation - not fixing it right now
 
     #choosing new die_player using a prob distribution over existing players
     #TODO-not doing it entirely correctly now, since the two end points (min and max) have almost no chance of being chosen - How to fix
-        #Maybe the above will be auto fixed when the algo ensures everyone receives feedback ensuring that no one has negative payoffs
-    #TODO - skip current die_player
-
-#TODO-Payoffs can be negative: implies that the number line needs to be chosen wisely
+    #Payoffs can be negative: implies that the number line needs to be chosen wisely
     min = 0
     max = 0
     ##log.debug("printing payoffs")
@@ -220,10 +192,11 @@ for ii in range(0,NUM_ITERATIONS):
             if payoff[i]>payoff[max]:
                 max = i
         ##log.debug(payoff[i])
-    log.debug("max and min payoffs are")
-    log.debug("'{0}', '{1}'".format(payoff[max], payoff[min]))
+    #l log.debug("max and min payoffs are")
+    #l log.debug("'{0}', '{1}'".format(payoff[max], payoff[min]))
     #Now we have the players with min and max payoffs, so divide up the number line
 
+    #TODO-just crapy hacky code - need to get graphs
     payoff_max = payoff[max]
     payoff_min = payoff[min]
 
@@ -233,8 +206,8 @@ for ii in range(0,NUM_ITERATIONS):
         payoff[i] -= payoff_min
         sum_p += payoff[i]
 
-    log.debug("new_shifted_payoff")
-    log.debug(payoff)
+    #l log.debug("new_shifted_payoff")
+    #l log.debug(payoff)
 
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
@@ -245,22 +218,19 @@ for ii in range(0,NUM_ITERATIONS):
     #TODO-check that the dist_array impl is right
     ##print "distr_array is ", distr_array
 
+    #check to see if distr_array is correct - this should match wiht payoff matrix values
     #for i in range(0,N-1):
      #   print distr_array[i+1] - distr_array[i]
 
-    #now get a random number in the range of the number line (0,sum_p) and see where it fails
+    #now get a random number in the range of the number line (0,sum_p) and see where it falls and chose die_player_new accordingly
+    #die_player_new is basically one of the alie players who will replace die_player
     toss = randint(0,int(sum_p))
     ##print "toss is", toss
     die_player_new = -1
-
     for i in range(0,N):
         if toss < distr_array[i]:
             die_player_new = i
             break
-
-    #die_player = die_player_new
-    #v print "new die_player is", die_player_new
-
     #assign the die_player the chosen guys value
     f[die_player] = f[die_player_new]
     c[die_player] = c[die_player_new]
@@ -271,13 +241,12 @@ for ii in range(0,NUM_ITERATIONS):
     ####log.debug("'{0}'".format(f), "entire freuqnecy array")
     #print count, "entire count array"
 
-    #TODO-now, clear out the values for next iteration
+    #now, clear out the values for next iteration
     #TODO-maybe we want to store the round by round details - think?
     for i in range(0,N):
         value[i] = 0.0
         cost[i] = 0.0
         count[i] = 0.0
-
 
     sums_all[ii] = sum_p
     kicked_all[ii] = die_player
@@ -285,15 +254,11 @@ for ii in range(0,NUM_ITERATIONS):
     final_freq_matrix[ii] = f
     log.info("'{0}'".format(final_freq_matrix[ii]))
 
-log.debug("!!!!")
 
-#Now repeat the whole experiment again with NUM_ITERATIONS loop above
-#print "%.2f" % sums_all
-#print sums_all
-#print kicked_all
-
-#TODO-fix final_freq_matrix storing+printing..
+log.debug(metric_pass_l_threshold)
+log.debug(metric_fail_l_threshold)
 log.debug(final_freq_matrix)
+log.debug("----")
 
 for i in range(0,NUM_ITERATIONS):
     log.debug("'{0}', '{1}'".format(i, sums_all[i])) #(i, sums_all[i])
@@ -304,6 +269,14 @@ for i in range(0,NUM_ITERATIONS):
     #print "\ /"
 
 
-#TODO-potential optimizations
-#1. use numpy/scipy
+#************
+#Graphing
+import matplotlib.pyplot as pyplot
+x = [-1] * NUM_ITERATIONS
+for i in range(0,NUM_ITERATIONS):
+    x[i] = i
+
+pyplot.plot(x,metric_pass_l_threshold)
+#pyplot.show()
+pyplot.savefig('l='+str(l)+',V='+str(V)+',ITER='+str(NUM_ITERATIONS)+'.png')
 
