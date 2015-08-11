@@ -1,4 +1,9 @@
 
+'''
+Code objective:
+1. Understand how the cost and value of an assignment affect the student's submission rate (approximated by evolution of f) - by varying V,C (relative values)
+2. Understand how the theeshold "l" affects student feedback submission rate
+'''
 from random import randint
 import numpy as np #for random.permutation
 import logging as log
@@ -13,14 +18,27 @@ log.debug('This is a log message.')
 
 log.info("**************************")
 
+'''
+TODOS: Performance
+1. maybe use numpy, scipy for array operations
+2. using many small fucntions for useless work (like "round") - eliminate smartly
+
+TODOS: Readability
+1. Have clear metrics variables - and named so
+2. Remove all variables not being used
+
+TODOS: For fun
+1. Write a functional version eliminatng ALL the global variables
+2.
+
+'''
 #*******************************
-NUM_ITERATIONS = 1
-N = 10 #number of players
-k = 3 #number of folks receiving feedback
+NUM_ITERATIONS = 100
+N = 100 #number of players
+k = 10 #number of folks receiving feedback
 
 #threshold to decide whether you will see feedbacks or not
-#TODO-this will affect the payoffs - make note of that - and edit payoffs accordingly
-l = 9
+l = 1
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -36,17 +54,14 @@ payoff = [0] * N
 
 #if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 10
+V = 100
 
 #populate all the values above
 for i in range(0,N):
-    f[i] = round((i)*1.0/N) #hack to ensure fractional part is taken
-    #log.debug(f[i]);
-    #TODO-change deno value above..
+    f[i] = round((i)*1.0/N,1) #hack to ensure fractional part is taken
+    #log.debug(f[i])
     c[i] = C
     v[i] = V
-
-#TODO-how should I vary c and v above in interesting and useful ways
 
 #count of how many feedbacks has "i"th player received
 count = [0] * N
@@ -55,6 +70,7 @@ value = [0.00] * N
 #cost incurred by "i"th in providing feedback
 cost = [0.00] * N
 
+#TODO-remove all variables not being used
 #Store sum of payoffs and people kicked out to see correlations
 sums_all = [0] * NUM_ITERATIONS
 kicked_all = [-1] * NUM_ITERATIONS
@@ -63,15 +79,12 @@ final_freq_matrix = [-1] * NUM_ITERATIONS
 for i in range(0,NUM_ITERATIONS):
     final_freq_matrix[i] = [-1] * N
 
-#TODO-remove all variables not being used
 #***********************
 
-#TODO-create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
+#Create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
 feedback_matrix = [-1] * k
 for i in range(0,k):
     feedback_matrix[i] = [-1] * N
-
-count_feedback = [0] * N # how many feedbacks has ith player received
 
 for i in range(0,k):
     for j in range(0,N):
@@ -80,19 +93,17 @@ for i in range(0,k):
 
 log.info("####")
 
-#feedback_flag = 1 #flag =1  denotes that the list needs to be repermuted
-
-
+feedback_flag = -1  #a value of 1 denotes that the list needs to be repermuted
 def create_feedback_matrix():
     for i in range(0,k):
         feedback_flag=1
         while(feedback_flag==1):
-            #v print i
             feedback_matrix[i] = np.random.permutation(N)
             #print "permuuuuuu", feedback_matrix[i]
     #TODO-check if same number has been assigned by chance
             for jj in range(0,N):
     #TODO-ensure that you dont give feedback to same player across rounds
+    #TODO-this  wrong feedbakc matrix crap needs to be fixed
                 cur_list = [-1] * (i+1)
                 for iii in range(1,i+1):
                     cur_list[iii] = feedback_matrix[iii-1][jj] #this list contains the elements chosen for the same player so far
@@ -106,13 +117,8 @@ def create_feedback_matrix():
                     feedback_flag=1
                 else:
                     feedback_flag=0
-
 log.info("$$$$")
 
-#TODO-have clear metrics variables - and named so
-#TODO-maybe use numpy, scipy for performance
-
-#TODO-dont call it die_player - its not die_player bro
 
 for ii in range(0,NUM_ITERATIONS):
     ##print "ITERATION ##########", ii
@@ -127,7 +133,6 @@ for ii in range(0,NUM_ITERATIONS):
             #    chosen = randint(0,N-1)
             chosen = feedback_matrix[j][i]
             chosen_few[j] = chosen
-            count_feedback[chosen] +=1
             # and (chosen not in chosen_few)): cannot provide feedback to self and to someone else already provided feedback to
             #print count[chosen], value[chosen], cost [i], "count, value, cost"
             count[chosen]+=1 #increment number of feedback received by chosen
@@ -135,12 +140,12 @@ for ii in range(0,NUM_ITERATIONS):
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
         #v print i, "   ", chosen_few
-    #print count_feedback
     #print feedback_matrix
 
     #TODO-ensure all default values are not crappy or wrong
     #TODO - all the above need to be reset to zero at the end of loop and beginning of next step
 
+#TODO--does avg_score help with anything
     avg_score = [-1] * N
 
     # randomly selecting player to die
@@ -155,7 +160,7 @@ for ii in range(0,NUM_ITERATIONS):
         #print payoff[i], value[i], cost[i], "<-- payoff[i]"
         ##print "original cost", cost [i]
         payoff[i] = value[i] - cost[i]
-        if (cost[i] > l):
+        if (cost[i] >= l):
             #then the player crosses our threshold of providing feedback
             pass_l_threshold +=1
         else:
@@ -207,21 +212,29 @@ for ii in range(0,NUM_ITERATIONS):
 #TODO-Payoffs can be negative: implies that the number line needs to be chosen wisely
     min = 0
     max = 0
-    log.debug("printing payoffs")
+    ##log.debug("printing payoffs")
     for i in range(0,N):
         if(i!=die_player):
             if payoff[i]<payoff[min]:
                 min = i
             if payoff[i]>payoff[max]:
                 max = i
-        log.debug(payoff[i])
+        ##log.debug(payoff[i])
+    log.debug("max and min payoffs are")
+    log.debug("'{0}', '{1}'".format(payoff[max], payoff[min]))
     #Now we have the players with min and max payoffs, so divide up the number line
 
+    payoff_max = payoff[max]
+    payoff_min = payoff[min]
 
-    #TODO-check if i have negative payoff values and to handle them...
-    #currently assuming positive values only, not using "start" and "end"
-    start = 0
-    end = payoff[max]-payoff[min]
+    #modify payoff matrix itself to keep things easy - also recompute sum_p (since it clearly changes)
+    sum_p = 0
+    for i in range(0,N):
+        payoff[i] -= payoff_min
+        sum_p += payoff[i]
+
+    log.debug("new_shifted_payoff")
+    log.debug(payoff)
 
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
@@ -229,6 +242,7 @@ for ii in range(0,NUM_ITERATIONS):
     for i in range(1,N):
         distr_array[i] = payoff[i] + distr_array[i-1]
 
+    #TODO-check that the dist_array impl is right
     ##print "distr_array is ", distr_array
 
     #for i in range(0,N-1):
