@@ -43,7 +43,7 @@ N = 100 #number of players
 k = 10 #number of folks receiving feedback
 
 #threshold to decide whether you will see feedbacks or not
-l = 1
+l = 9
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -56,6 +56,9 @@ c = [0] * N
 v = [0] * N
 #payoff_value for players
 payoff = [0] * N
+#introducing fitness to take over from payoff
+fitness = [0] * N
+
 
 #if using constant values for Cost and Value of feedback for all players
 C = 1
@@ -134,9 +137,42 @@ def create_feedback_matrix():
                     feedback_flag=1
                 else:
                     feedback_flag=0
-log.info("$$$$")
 
-#Main loop in which a new feedback matrix is created for every iteration
+#*************************************
+#Introducing different fitness functions
+
+def fitness_linear_fit(pay):
+#fitness = payoff + c (where c is the minimum to be added to make all payoffs non-negative)
+#idea: this fitness function
+    print "fitness_linear_fit"
+
+
+def fitness_epsilon_factor():
+#fitness = 1 + w * payoff (where w is epsilon, a very small number)
+#idea: this fitness function reduces the dependence on payoff
+    print "fitness_epsilon_factor"
+
+def fitness_exp(pay):
+#fitness = exp(payoff)
+#idea: this fitness function accentuates the difference between payoffs - expect to be BLOWN!
+    print "fitness_exp"
+    print pay
+    return m.exp(pay/10)
+
+def fitness_mirror(pay):
+#trivial - just returns the same value - only doing to get basic case running
+    #print "fitness_mirror"
+    return pay
+
+#************************************
+
+
+sum_fitness = 0
+
+#Main loop in which all the action happens:
+# a new feedback matrix is created for every iteration .. and yadayada
+#TODO-fix above comment
+#TODO-fix loop var names - pretty arbit right now
 for ii in range(0,NUM_ITERATIONS):
     ##print "ITERATION ##########", ii
     create_feedback_matrix() #create new feedback matrix for every iteration
@@ -174,20 +210,20 @@ for ii in range(0,NUM_ITERATIONS):
     #TODO-fix sum_p when you account for taking out die_player from the distribution
     #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
     ##print sum_p, "<-- sum_p"
-
-
-#TODO-following three lines are redundant
-    #f[die_player] = 0
-    #c[die_player] = 0
-    #v[die_player] = 0
-
+    ##print fitness
+    ##print payoff
+    for i in range(0,N):
+        #fitness[i] = fitness_mirror(payoff[i])
+        fitness[i] = fitness_exp(payoff[i])
+    #TODO-add all other fitness functions here
+    ##print fitness
 
     #choosing new die_player using a prob distribution over existing players
     #TODO-not doing it entirely correctly now, since the two end points (min and max) have almost no chance of being chosen - How to fix
     #Payoffs can be negative: implies that the number line needs to be chosen wisely
     min = 0
     max = 0
-    ##log.debug("printing payoffs")
+    ##log.debug("printing fitness")
     for i in range(0,N):
         if(i!=die_player):
             if payoff[i]<payoff[min]:
@@ -212,11 +248,19 @@ for ii in range(0,NUM_ITERATIONS):
     #l log.debug("new_shifted_payoff")
     #l log.debug(payoff)
 
+    #TODO-IMP--pull the above code inside linear fitness
+    #TODO-just transform the payoff into fitness
+
+    ##fitness = fitness_mirror(payoff)
+    for i in range(0,N):
+        sum_fitness += fitness[i]
+
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
+    #TODO-At this point i am assuming that the fitness returned will be positive, so I can do the following simply
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
-    distr_array[0] = payoff[0]
+    distr_array[0] = fitness[0]#payoff[0]
     for i in range(1,N):
-        distr_array[i] = payoff[i] + distr_array[i-1]
+        distr_array[i] = distr_array[i-1] + fitness[i] #payoff[i]
 
     #TODO-check that the dist_array impl is right
     ##print "distr_array is ", distr_array
@@ -227,7 +271,7 @@ for ii in range(0,NUM_ITERATIONS):
 
     #now get a random number in the range of the number line (0,sum_p) and see where it falls and chose die_player_new accordingly
     #die_player_new is basically one of the alie players who will replace die_player
-    toss = randint(0,int(sum_p))
+    toss = randint(0,int(sum_fitness)) #TODO-check this
     ##print "toss is", toss
     die_player_new = -1
     for i in range(0,N):
@@ -302,7 +346,7 @@ for ii in range(0,NUM_ITERATIONS):
 
 #to plot this
 #TODO-show error bars/variance,
-#currently only showing average
+#currently showing average with all other iterations results
 avg_freq = [0] * k
 for i in range(0,k):
     for j in range(0,NUM_ITERATIONS):
@@ -322,9 +366,9 @@ pyplot.ylabel("Number of players")
 pyplot.title("Average and per-iteration number of players in every frequency bin")
 #print freq_bars
 for i in range(0,NUM_ITERATIONS):
-    pyplot.plot(x_k, freq_bars[i], color='yellow', linewidth="0.01", linestyle='dashed')
+    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth="0.01", linestyle='dashed')
 #pyplot.plot(x_k,freq_bars[0])
 #pyplot.plot(x_k,freq_bars[1])
-pyplot.savefig("images_a1l.png")
+pyplot.savefig("image_test.png")
 
 #pyplot.save("hashfail.png")
