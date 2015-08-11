@@ -7,6 +7,7 @@ Code objective:
 from random import randint
 import numpy as np #for random.permutation
 import logging as log
+import math as m
 
 log.basicConfig(
     filename='results.TEXT',
@@ -62,8 +63,9 @@ V = 100
 
 #populate all the values above
 for i in range(0,N):
-    f[i] = round((i)*1.0/N,1) #hack to ensure fractional part is taken
-    #log.debug(f[i])
+#TODO-this f[i] expression is way too complicated, but lazy
+    f[i] = round(m.floor((i)*10.0/N)*(0.1),1) #hack to ensure fractional part is taken
+    log.debug(f[i])
     c[i] = C
     v[i] = V
 
@@ -166,7 +168,8 @@ for ii in range(0,NUM_ITERATIONS):
         else:
             metric_fail_l_threshold[ii] += 1
         sum_p += payoff[i]
-    print "number of players who passed and failed threshold are", metric_pass_l_threshold[ii], metric_fail_l_threshold[ii]
+    ##print "number of players who passed and failed threshold are", metric_pass_l_threshold[ii], metric_fail_l_threshold[ii]
+
 
     #TODO-fix sum_p when you account for taking out die_player from the distribution
     #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
@@ -251,7 +254,9 @@ for ii in range(0,NUM_ITERATIONS):
     sums_all[ii] = sum_p
     kicked_all[ii] = die_player
     replacers[ii] = die_player_new
-    final_freq_matrix[ii] = f
+    for xx in range(0,N):
+        final_freq_matrix[ii][xx] = f[xx]
+    #final_freq_matrix[ii] = f
     log.info("'{0}'".format(final_freq_matrix[ii]))
 
 
@@ -270,13 +275,56 @@ for i in range(0,NUM_ITERATIONS):
 
 
 #************
-#Graphing
+#Plots
 import matplotlib.pyplot as pyplot
 x = [-1] * NUM_ITERATIONS
 for i in range(0,NUM_ITERATIONS):
     x[i] = i
 
-pyplot.plot(x,metric_pass_l_threshold)
+##pyplot.plot(x,metric_pass_l_threshold)
 #pyplot.show()
-pyplot.savefig('l='+str(l)+',V='+str(V)+',ITER='+str(NUM_ITERATIONS)+'.png')
+##pyplot.savefig('l='+str(l)+',V='+str(V)+',ITER='+str(NUM_ITERATIONS)+'.png')
 
+#TODO-freq_bars depend upon number "k" - DO NOT FORGET
+freq_bars = [0] * NUM_ITERATIONS
+for i in range(0,NUM_ITERATIONS):
+    freq_bars[i] = [0] * k
+
+#print final_freq_matrix
+#print freq_bars
+
+#Plots for frequency
+for ii in range(0,NUM_ITERATIONS):
+    for j in range(0,N):
+        #print int(final_freq_matrix[ii][j]*k)
+        freq_bars[ii][int(final_freq_matrix[ii][j]*k)] += 1
+#print freq_bars
+
+#to plot this
+#TODO-show error bars/variance,
+#currently only showing average
+avg_freq = [0] * k
+for i in range(0,k):
+    for j in range(0,NUM_ITERATIONS):
+        avg_freq[i] += freq_bars[j][i]
+    avg_freq[i] *= 1.0/NUM_ITERATIONS  #Again, float hack
+
+##print avg_freq
+##print sum(avg_freq)
+
+x_k = [-1] * k
+for i in range(0,k):
+    x_k[i] = i
+
+pyplot.plot(x_k,avg_freq, color='green', linewidth="5.0")
+pyplot.xlabel("Frequency bins: 0.0 to 0.9")
+pyplot.ylabel("Number of players")
+pyplot.title("Average and per-iteration number of players in every frequency bin")
+#print freq_bars
+for i in range(0,NUM_ITERATIONS):
+    pyplot.plot(x_k, freq_bars[i], color='yellow', linewidth="0.01", linestyle='dashed')
+#pyplot.plot(x_k,freq_bars[0])
+#pyplot.plot(x_k,freq_bars[1])
+pyplot.savefig("images_a1l.png")
+
+#pyplot.save("hashfail.png")
