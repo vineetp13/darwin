@@ -29,8 +29,12 @@ TODOS: For fun
 2.
 '''
 #*******************************
+# linear is 1, epsilon is 2 and exp is 3
+WHICH_FITNESS_FUNCTION=3
+WHICH_RUN=1
 NUM_ITERATIONS = 10
-N = 100 #number of players
+
+N = 1000 #number of players
 k = 10 #number of folks receiving feedback
 
 #Following-three are tweakable parameters
@@ -38,11 +42,7 @@ k = 10 #number of folks receiving feedback
 l = 1
 #if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 1
-
-# linear is 1, epsilon is 2 and exp is 3
-WHICH_FITNESS_FUNCTION = 1
-WHICH_RUN=1
+V = 10
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -64,7 +64,7 @@ fitness = [0] * N
 #TODO-make it consistent (debug vs info)
 
 #filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
-PRINT_STRING='-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_'+str(WHICH_RUN)
+PRINT_STRING='-diminish-value-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_'+str(WHICH_RUN)
 log.basicConfig(
     filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
     level=log.DEBUG,
@@ -151,33 +151,36 @@ def create_feedback_matrix():
 #*************************************
 #Introducing different fitness functions
 
+#WHICH_FITNESS_FUNCTION=0, useless really
+def fitness_mirror(pay):
+#trivial - just returns the same value - only doing to get basic case running
+    #print "fitness_mirror"
+    return pay
+
+#WHICH_FITNESS_FUNCTION=1, actually implemented in code itself as payoff
 def fitness_linear_fit(pay):
 #fitness = payoff + c (where c is the minimum to be added to make all payoffs non-negative)
 #idea: this fitness function
     print "fitness_linear_fit"
     #TODO-this is the complicated part - pull in code from existing main code
 
-
 #TODO-how do you decide epsilon
 epsilon = 0.0001
+#WHICH_FITNESS_FUNCTION=2, #TODO-implement
 def fitness_epsilon_factor(pay):
 #fitness = 1 + w * payoff (where w is epsilon, a very small number)
 #idea: this fitness function reduces the dependence on payoff
     print "fitness_epsilon_factor"
     return 1 + epsilon*pay
 
+#WHICH_FITNESS_FUNCTION=3
 def fitness_exp(pay):
 #fitness = exp(payoff)
 #idea: this fitness function accentuates the difference between payoffs - expect to be BLOWN!
     print "fitness_exp"
-    print pay
+    #print pay
     #TODO-we should not have a by 10 factor in general - ask Krish
     return m.exp(pay/10)
-
-def fitness_mirror(pay):
-#trivial - just returns the same value - only doing to get basic case running
-    #print "fitness_mirror"
-    return pay
 
 #************************************
 sum_fitness = 0
@@ -196,7 +199,8 @@ for ii in range(0,NUM_ITERATIONS):
             chosen = feedback_matrix[j][i] #TODO-clean this code, just lazy
             #chosen_few[j] = chosen
             count[chosen]+=1 #increment number of feedback received by chosen
-            value[chosen]+=f[i]*v[i] #increment value of feedbacks received by chosen
+            #TODO-introduce count dependent value
+            value[chosen]+=f[i]*v[i]*(1.0/count[chosen]) #increment value of feedbacks received by chosen
             cost[i] += c[i]*f[i]#cost incurred to "i"th player in providing feedback
             #print count[chosen], value[chosen], cost [i], "count, value, cost new"
         #v print i, "   ", chosen_few
@@ -233,18 +237,30 @@ for ii in range(0,NUM_ITERATIONS):
     print "cost", cost
     print payoff
     '''
-    for i in range(0,N):
-        #fitness[i] = fitness_mirror(payoff[i])
-        fitness[i] = payoff[i]#fitness_exp(payoff[i])
-    #TODO-add all other fitness functions here
-    ##print fitness
+    if (WHICH_FITNESS_FUNCTION==0):
+        print "does not work"
+        break
+        #for i in range(0,N):
+            #fitness[i] = fitness_mirror(payoff[i])
+    if (WHICH_FITNESS_FUNCTION==1):
+        print "should not be used"
+        break
+    if (WHICH_FITNESS_FUNCTION==2):
+        for i in range(0,N):
+            fitness[i] = fitness_epsilon_factor(payoff[i])
+            #TODO-check if above works
+    if (WHICH_FITNESS_FUNCTION==3):
+        for i in range(0,N):
+            fitness[i] = fitness_exp(payoff[i])
+    #TODO-check if fitness is actually positibe or not
+    print "ii and fitness", ii, fitness
+
 
     #choosing new die_player using a prob distribution over existing players
     #TODO-not doing it entirely correctly now, since the two end points (min and max) have almost no chance of being chosen - How to fix
     #Payoffs can be negative: implies that the number line needs to be chosen wisely
     min = 0
     max = 0
-    ##log.debug("printing fitness")
     for i in range(0,N):
         #TODO-possible bug here with the die_player being included, but doesn't affect result at our scale
         #if(i!=die_player):
@@ -275,18 +291,29 @@ for ii in range(0,NUM_ITERATIONS):
     #l log.debug(payoff)
     #print(payoff)
 
-    #TODO-IMP--pull the above code inside linear fitness
+    #TODO-IMP--pull the above code inside linear fitness - later, if needed
     #TODO-just transform the payoff into fitness
 
     for i in range(0,N):
         sum_fitness += fitness[i]
+    print "sum_fitness and ii", ii, sum_fitness
 
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix later - not imp at our scale of N
     #TODO-At this point i am assuming that the fitness returned will be positive, so I can do the following simply
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
-    distr_array[0] = payoff[0]#fitness[0]
-    for i in range(1,N):
-        distr_array[i] = distr_array[i-1] + payoff[i]#fitness[i] #payoff[i]
+
+    if (WHICH_FITNESS_FUNCTION==1):
+        distr_array[0] = payoff[0]#fitness[0]
+        for i in range(1,N):
+            distr_array[i] = distr_array[i-1] + payoff[i]#fitness[i] #payoff[i]
+    if (WHICH_FITNESS_FUNCTION==2):
+        #TODO-add this
+        print "fitness=2 - add content"
+    if (WHICH_FITNESS_FUNCTION==3):
+        print "fitness=3"
+        distr_array[0] = fitness[0]
+        for i in range(1,N):
+            distr_array[i] = distr_array[i-1] + fitness[i] #payoff[i]
 
     #print "distr_array is ", distr_array
 
@@ -296,9 +323,12 @@ for ii in range(0,NUM_ITERATIONS):
 
     #now get a random number in the range of the number line (0,sum_p) and see where it falls and chose die_player_new accordingly
     #die_player_new is basically one of the alie players who will replace die_player
+    if WHICH_FITNESS_FUNCTION==1:
+        toss = randint(0,int(sum_p)) #TODO-check this
+    else:
+        toss = randint(0,int(sum_fitness))
+        #TODO-the else clause will cause problems
 
-    #toss = randint(0,int(sum_fitness))
-    toss = randint(0,int(sum_p)) #TODO-check this
     #print "toss is", toss
     die_player_new = -1
     for i in range(0,N):
@@ -410,7 +440,7 @@ pyplot.ylabel("Number of players")
 pyplot.title("Average and per-iteration number of players in every frequency bin")
 #print freq_bars
 for i in range(0,NUM_ITERATIONS):
-    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth="0.1", linestyle='dashed')#, label=str(i))
-#pyplot.savefig('graphs_outputs/graph-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'.png')
+    width=i*(1.0/N)
+    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth=width, linestyle='dashed')#, label=str(i))
 pyplot.savefig('graphs_outputs/graph'+PRINT_STRING+'.png')
-#filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
+
