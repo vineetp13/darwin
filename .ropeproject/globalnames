@@ -1,6 +1,6 @@
-€}qUdarwin]q(Ufitness_mirrorqUtossqUsum_fitnessqUx_kqUiiqUxxqUcostq	Usum_pq
-U
-payoff_maxqU
-die_playerqUmetric_pass_l_thresholdqUpayoffqUfeedback_matrixqUchosenqU
-payoff_minqUsums_allqUepsilonqUfinal_freq_matrixqUmaxqUCUdistr_arrayqU	replacersqUNUM_ITERATIONSqUfitnessqUNUcreate_feedback_matrixqUfitness_linear_fitqUVUmetric_fail_l_thresholdqUfitness_expqU	freq_barsqUavg_freqqUcountq UcUfitness_epsilon_factorq!UfUiUkUjUlUvalueq"Ufeedback_flagq#Udie_player_newq$Uminq%UvUxU
-kicked_allq&es.
+€}qUdarwin]q(Ufitness_mirrorqUPRINT_STRINGqUtossqUsum_fitnessqUx_kqUiiqUxxq	Ucostq
+Usum_pqU
+payoff_maxqU
+die_playerqUmetric_pass_l_thresholdqUpayoffqUfeedback_matrixqUchosenqU
+payoff_minqUsums_allqUepsilonqUfinal_freq_matrixqUmaxqUCUdistr_arrayqU	replacersqUNUM_ITERATIONSqUfitnessqUNUcreate_feedback_matrixqUfitness_linear_fitqUVU	WHICH_RUNqUmetric_fail_l_thresholdqUfitness_expqU	freq_barsq Uavg_freqq!Ucountq"UcUfitness_epsilon_factorq#UfUiUkUjUlUvalueq$UWHICH_FITNESS_FUNCTIONq%Ufeedback_flagq&Udie_player_newq'Uminq(UvUxU
+kicked_allq)es.

@@ -20,15 +20,16 @@ TODOS: Readability
 3. #TODO-use multiline comments preserving indentation - not fixing it right now
 
 TODOS: Correctness:
-1. TODO-ensure all default values are not crappy or wrong
+1. TODO-ensure all default values are not crappy or wrong (eg: choosing a default array index as -1 will lead to last element being selected)
+2. TODO - fix minor issue in create_feedback_matrix constaints
+3. TODO - not accounting for die_player when choosing new players (currently including him but okay at our scale)
 
 TODOS: For fun
 1. Write a functional version eliminatng ALL the global variables
 2.
-
 '''
 #*******************************
-NUM_ITERATIONS = 100
+NUM_ITERATIONS = 10
 N = 100 #number of players
 k = 10 #number of folks receiving feedback
 
@@ -37,7 +38,11 @@ k = 10 #number of folks receiving feedback
 l = 1
 #if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 100
+V = 1
+
+# linear is 1, epsilon is 2 and exp is 3
+WHICH_FITNESS_FUNCTION = 1
+WHICH_RUN=1
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -57,8 +62,11 @@ fitness = [0] * N
 #Setting up logging
 #I use log.info to print to the outputs file (to maintain record for graphs and oversee results in general), and debug to well.. debug
 #TODO-make it consistent (debug vs info)
+
+#filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
+PRINT_STRING='-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_'+str(WHICH_RUN)
 log.basicConfig(
-    filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-ITER='+str(NUM_ITERATIONS)+'.TEXT',
+    filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
     level=log.DEBUG,
     format=' %(message)s',
     filemode='w')
@@ -73,6 +81,7 @@ for i in range(0,N):
 #TODO-this f[i] expression is way too complicated, but lazy
     f[i] = round(m.floor((i)*10.0/N)*(0.1),1) #hack to ensure fractional part is taken
     #log.debug(f[i])
+    #print(f[i])
     c[i] = C
     v[i] = V
 
@@ -201,11 +210,12 @@ for ii in range(0,NUM_ITERATIONS):
 
     #calculating payoff values in payoff[i]
     for i in range(0,N):
-        payoff[i] = value[i] - cost[i]
         if (cost[i] >= l):
             #then the player crosses our threshold of providing feedback
+            payoff[i] = value[i] - cost[i]
             metric_pass_l_threshold[ii] +=1
         else:
+            payoff[i] = 0 - cost[i]
             metric_fail_l_threshold[ii] += 1
         sum_p += payoff[i]
     ##print "number of players who passed and failed threshold are", metric_pass_l_threshold[ii], metric_fail_l_threshold[ii]
@@ -214,8 +224,15 @@ for ii in range(0,NUM_ITERATIONS):
     #TODO-fix sum_p when you account for taking out die_player from the distribution
     #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
     ##print sum_p, "<-- sum_p"
-    ##print fitness
-    ##print payoff
+    #print fitness
+    log.debug(str(ii))
+    '''
+    print "prev feq",final_freq_matrix[ii-2]
+    print "freq", f
+    print "value", value
+    print "cost", cost
+    print payoff
+    '''
     for i in range(0,N):
         #fitness[i] = fitness_mirror(payoff[i])
         fitness[i] = payoff[i]#fitness_exp(payoff[i])
@@ -229,12 +246,16 @@ for ii in range(0,NUM_ITERATIONS):
     max = 0
     ##log.debug("printing fitness")
     for i in range(0,N):
-        if(i!=die_player):
-            if payoff[i]<payoff[min]:
-                min = i
-            if payoff[i]>payoff[max]:
-                max = i
-        ##log.debug(payoff[i])
+        #TODO-possible bug here with the die_player being included, but doesn't affect result at our scale
+        #if(i!=die_player):
+        if payoff[i]<payoff[min]:
+            min = i
+        if payoff[i]>payoff[max]:
+            max = i
+        ##logging.debug(payoff[i])
+        ##else:
+          ##  print "Did not enter"
+           ## print i,die_player,payoff[die_player]
     #l log.debug("max and min payoffs are")
     #l log.debug("'{0}', '{1}'".format(payoff[max], payoff[min]))
     #Now we have the players with min and max payoffs, so divide up the number line
@@ -250,7 +271,9 @@ for ii in range(0,NUM_ITERATIONS):
         sum_p += payoff[i]
 
     #l log.debug("new_shifted_payoff")
+    #print("new_shifted_payoff")
     #l log.debug(payoff)
+    #print(payoff)
 
     #TODO-IMP--pull the above code inside linear fitness
     #TODO-just transform the payoff into fitness
@@ -258,15 +281,14 @@ for ii in range(0,NUM_ITERATIONS):
     for i in range(0,N):
         sum_fitness += fitness[i]
 
-    #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
+    #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix later - not imp at our scale of N
     #TODO-At this point i am assuming that the fitness returned will be positive, so I can do the following simply
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
     distr_array[0] = payoff[0]#fitness[0]
     for i in range(1,N):
         distr_array[i] = distr_array[i-1] + payoff[i]#fitness[i] #payoff[i]
 
-    #TODO-check that the dist_array impl is right
-    ##print "distr_array is ", distr_array
+    #print "distr_array is ", distr_array
 
     #check to see if distr_array is correct - this should match wiht payoff matrix values
     #for i in range(0,N-1):
@@ -274,15 +296,26 @@ for ii in range(0,NUM_ITERATIONS):
 
     #now get a random number in the range of the number line (0,sum_p) and see where it falls and chose die_player_new accordingly
     #die_player_new is basically one of the alie players who will replace die_player
-    #toss = randint(0,int(sum_fitness)) #TODO-check this
+
+    #toss = randint(0,int(sum_fitness))
     toss = randint(0,int(sum_p)) #TODO-check this
-    ##print "toss is", toss
+    #print "toss is", toss
     die_player_new = -1
     for i in range(0,N):
-        if toss < distr_array[i]:
-        #TODO-THIS IS NOT BEING MATCHED
+        if toss <= distr_array[i]: #missing equality condition initially, led to bug
             die_player_new = i
             break
+
+    if die_player_new==-1:
+        print "---------1"
+        print toss, die_player
+        break
+
+    if sum_p==0:
+        print "sum_p is 0"
+        print toss, die_player, die_player_new
+        break
+
     #assign the die_player the chosen guys value
     f[die_player] = f[die_player_new]
     c[die_player] = c[die_player_new]
@@ -330,9 +363,15 @@ x = [-1] * NUM_ITERATIONS
 for i in range(0,NUM_ITERATIONS):
     x[i] = i
 
-##pyplot.plot(x,metric_pass_l_threshold)
-#pyplot.show()
-##pyplot.savefig('l='+str(l)+',V='+str(V)+',ITER='+str(NUM_ITERATIONS)+'.png')
+pyplot.plot(x,metric_pass_l_threshold)
+pyplot.xlabel("Number of Iterations: 0 to "+str(NUM_ITERATIONS-1))
+pyplot.ylabel("Number of players who beat the threshold")
+pyplot.title("Success against threshold vs number of iterations")
+pyplot.savefig('graphs_outputs/success'+PRINT_STRING+'.png')
+
+pyplot.clf()
+pyplot.cla()
+pyplot.close()
 
 #TODO-freq_bars depend upon number "k" - DO NOT FORGET
 freq_bars = [0] * NUM_ITERATIONS
@@ -371,9 +410,7 @@ pyplot.ylabel("Number of players")
 pyplot.title("Average and per-iteration number of players in every frequency bin")
 #print freq_bars
 for i in range(0,NUM_ITERATIONS):
-    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth="0.01", linestyle='dashed')
-#pyplot.plot(x_k,freq_bars[0])
-#pyplot.plot(x_k,freq_bars[1])
-pyplot.savefig('dir1/l='+str(l)+', V='+str(V)+', fitness=+c'+', ITER='+str(NUM_ITERATIONS)+', N='+str(N)+'_4.png')
-
-#pyplot.save("hashfail.png")
+    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth="0.1", linestyle='dashed')#, label=str(i))
+#pyplot.savefig('graphs_outputs/graph-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'.png')
+pyplot.savefig('graphs_outputs/graph'+PRINT_STRING+'.png')
+#filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
