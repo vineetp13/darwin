@@ -9,16 +9,6 @@ import numpy as np #for random.permutation
 import logging as log
 import math as m
 
-log.basicConfig(
-    filename='results.TEXT',
-    level=log.DEBUG,
-    format=' %(message)s',
-    filemode='w')
-    #format='%(asctime)s - %(levelname)s - %(message)s')
-#log.debug('This is a log message.')
-
-log.info("**************************")
-
 '''
 TODOS: Performance
 1. maybe use numpy, scipy for array operations
@@ -42,8 +32,12 @@ NUM_ITERATIONS = 100
 N = 100 #number of players
 k = 10 #number of folks receiving feedback
 
+#Following-three are tweakable parameters
 #threshold to decide whether you will see feedbacks or not
-l = 9
+l = 1
+#if using constant values for Cost and Value of feedback for all players
+C = 1
+V = 100
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -59,16 +53,26 @@ payoff = [0] * N
 #introducing fitness to take over from payoff
 fitness = [0] * N
 
+#******************
+#Setting up logging
+#I use log.info to print to the outputs file (to maintain record for graphs and oversee results in general), and debug to well.. debug
+#TODO-make it consistent (debug vs info)
+log.basicConfig(
+    filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-ITER='+str(NUM_ITERATIONS)+'.TEXT',
+    level=log.DEBUG,
+    format=' %(message)s',
+    filemode='w')
+    #format='%(asctime)s - %(levelname)s - %(message)s')
+#log.debug('This is a log message.')
 
-#if using constant values for Cost and Value of feedback for all players
-C = 1
-V = 100
+log.info("**************************")
 
+#*************************
 #populate all the values above
 for i in range(0,N):
 #TODO-this f[i] expression is way too complicated, but lazy
     f[i] = round(m.floor((i)*10.0/N)*(0.1),1) #hack to ensure fractional part is taken
-    log.debug(f[i])
+    #log.debug(f[i])
     c[i] = C
     v[i] = V
 
@@ -89,14 +93,11 @@ for i in range(0,NUM_ITERATIONS):
     final_freq_matrix[i] = [-1] * N
 
 #***********************
-
 #Metrics used
 metric_pass_l_threshold = [0] * NUM_ITERATIONS
 metric_fail_l_threshold = [0] * NUM_ITERATIONS
 
-
 #*******
-
 #Create a matrix of who gives feedback to whom - To preseve the condition that everyone receives just as many feedbacks
 #k*n matrix, so, i-th column denotes who receives feedback from i-th player
 #Conditions: 1. Player cannot give feedback to self 2.In one round, any player should only receive k feedbacks (fromk unique players)
@@ -145,18 +146,23 @@ def fitness_linear_fit(pay):
 #fitness = payoff + c (where c is the minimum to be added to make all payoffs non-negative)
 #idea: this fitness function
     print "fitness_linear_fit"
+    #TODO-this is the complicated part - pull in code from existing main code
 
 
-def fitness_epsilon_factor():
+#TODO-how do you decide epsilon
+epsilon = 0.0001
+def fitness_epsilon_factor(pay):
 #fitness = 1 + w * payoff (where w is epsilon, a very small number)
 #idea: this fitness function reduces the dependence on payoff
     print "fitness_epsilon_factor"
+    return 1 + epsilon*pay
 
 def fitness_exp(pay):
 #fitness = exp(payoff)
 #idea: this fitness function accentuates the difference between payoffs - expect to be BLOWN!
     print "fitness_exp"
     print pay
+    #TODO-we should not have a by 10 factor in general - ask Krish
     return m.exp(pay/10)
 
 def fitness_mirror(pay):
@@ -165,8 +171,6 @@ def fitness_mirror(pay):
     return pay
 
 #************************************
-
-
 sum_fitness = 0
 
 #Main loop in which all the action happens:
@@ -214,7 +218,7 @@ for ii in range(0,NUM_ITERATIONS):
     ##print payoff
     for i in range(0,N):
         #fitness[i] = fitness_mirror(payoff[i])
-        fitness[i] = fitness_exp(payoff[i])
+        fitness[i] = payoff[i]#fitness_exp(payoff[i])
     #TODO-add all other fitness functions here
     ##print fitness
 
@@ -251,16 +255,15 @@ for ii in range(0,NUM_ITERATIONS):
     #TODO-IMP--pull the above code inside linear fitness
     #TODO-just transform the payoff into fitness
 
-    ##fitness = fitness_mirror(payoff)
     for i in range(0,N):
         sum_fitness += fitness[i]
 
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix
     #TODO-At this point i am assuming that the fitness returned will be positive, so I can do the following simply
     distr_array = [0] * N #this array stores the end-point for ith player to be chosen
-    distr_array[0] = fitness[0]#payoff[0]
+    distr_array[0] = payoff[0]#fitness[0]
     for i in range(1,N):
-        distr_array[i] = distr_array[i-1] + fitness[i] #payoff[i]
+        distr_array[i] = distr_array[i-1] + payoff[i]#fitness[i] #payoff[i]
 
     #TODO-check that the dist_array impl is right
     ##print "distr_array is ", distr_array
@@ -271,11 +274,13 @@ for ii in range(0,NUM_ITERATIONS):
 
     #now get a random number in the range of the number line (0,sum_p) and see where it falls and chose die_player_new accordingly
     #die_player_new is basically one of the alie players who will replace die_player
-    toss = randint(0,int(sum_fitness)) #TODO-check this
+    #toss = randint(0,int(sum_fitness)) #TODO-check this
+    toss = randint(0,int(sum_p)) #TODO-check this
     ##print "toss is", toss
     die_player_new = -1
     for i in range(0,N):
         if toss < distr_array[i]:
+        #TODO-THIS IS NOT BEING MATCHED
             die_player_new = i
             break
     #assign the die_player the chosen guys value
@@ -369,6 +374,6 @@ for i in range(0,NUM_ITERATIONS):
     pyplot.plot(x_k, freq_bars[i], color='blue', linewidth="0.01", linestyle='dashed')
 #pyplot.plot(x_k,freq_bars[0])
 #pyplot.plot(x_k,freq_bars[1])
-pyplot.savefig("image_test.png")
+pyplot.savefig('dir1/l='+str(l)+', V='+str(V)+', fitness=+c'+', ITER='+str(NUM_ITERATIONS)+', N='+str(N)+'_4.png')
 
 #pyplot.save("hashfail.png")
