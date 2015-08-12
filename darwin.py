@@ -13,6 +13,8 @@ import math as m
 TODOS: Performance
 1. maybe use numpy, scipy for array operations
 2. using many small fucntions for useless work (like "round") - eliminate smartly
+3. Remove redundant calculations of sum_p, sum_fitness when distr_array is being calc already
+4. do distr_array choice and toss smartly
 
 TODOS: Readability
 1. Have clear metrics variables - and named so
@@ -30,9 +32,9 @@ TODOS: For fun
 '''
 #*******************************
 # linear is 1, epsilon is 2 and exp is 3
-WHICH_FITNESS_FUNCTION=3
+WHICH_FITNESS_FUNCTION=2
 WHICH_RUN=1
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 1000
 
 N = 1000 #number of players
 k = 10 #number of folks receiving feedback
@@ -42,7 +44,7 @@ k = 10 #number of folks receiving feedback
 l = 1
 #if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 10
+V = 1
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -165,25 +167,24 @@ def fitness_linear_fit(pay):
     #TODO-this is the complicated part - pull in code from existing main code
 
 #TODO-how do you decide epsilon
-epsilon = 0.0001
+epsilon = 0.001
 #WHICH_FITNESS_FUNCTION=2, #TODO-implement
 def fitness_epsilon_factor(pay):
 #fitness = 1 + w * payoff (where w is epsilon, a very small number)
 #idea: this fitness function reduces the dependence on payoff
-    print "fitness_epsilon_factor"
+    #print "fitness_epsilon_factor"
     return 1 + epsilon*pay
 
 #WHICH_FITNESS_FUNCTION=3
 def fitness_exp(pay):
 #fitness = exp(payoff)
 #idea: this fitness function accentuates the difference between payoffs - expect to be BLOWN!
-    print "fitness_exp"
+    #print "fitness_exp"
     #print pay
-    #TODO-we should not have a by 10 factor in general - ask Krish
-    return m.exp(pay/10)
+    #TODO-we should not have a by 10 factor in general - ask Krish - also adding a constant
+    return m.exp((pay))
 
 #************************************
-sum_fitness = 0
 
 #Main loop in which all the action happens:
 # a new feedback matrix is created for every iteration .. and yadayada
@@ -211,6 +212,7 @@ for ii in range(0,NUM_ITERATIONS):
     # randomly selecting player to die
     die_player = randint(0,N-1)
     sum_p = 0
+    sum_fitness = 0
 
     #calculating payoff values in payoff[i]
     for i in range(0,N):
@@ -224,6 +226,7 @@ for ii in range(0,NUM_ITERATIONS):
         sum_p += payoff[i]
     ##print "number of players who passed and failed threshold are", metric_pass_l_threshold[ii], metric_fail_l_threshold[ii]
 
+    ##print "ii and payoff matrix", ii, payoff
 
     #TODO-fix sum_p when you account for taking out die_player from the distribution
     #sum_p = sum_p - p[die_player] #take die_player out of probability distribution
@@ -252,8 +255,11 @@ for ii in range(0,NUM_ITERATIONS):
     if (WHICH_FITNESS_FUNCTION==3):
         for i in range(0,N):
             fitness[i] = fitness_exp(payoff[i])
+            if fitness[i]<=0:
+                print "FITNESS NEGATIVE"
+                break
     #TODO-check if fitness is actually positibe or not
-    print "ii and fitness", ii, fitness
+    ##print "ii and fitness", ii, fitness
 
 
     #choosing new die_player using a prob distribution over existing players
@@ -296,7 +302,7 @@ for ii in range(0,NUM_ITERATIONS):
 
     for i in range(0,N):
         sum_fitness += fitness[i]
-    print "sum_fitness and ii", ii, sum_fitness
+    ##print "sum_fitness and ii", ii, sum_fitness
 
     #TODO-currently the dist_array includes the current die_player, this needs to be tweaked out - but it's okay right now  - easy to fix later - not imp at our scale of N
     #TODO-At this point i am assuming that the fitness returned will be positive, so I can do the following simply
@@ -306,16 +312,13 @@ for ii in range(0,NUM_ITERATIONS):
         distr_array[0] = payoff[0]#fitness[0]
         for i in range(1,N):
             distr_array[i] = distr_array[i-1] + payoff[i]#fitness[i] #payoff[i]
-    if (WHICH_FITNESS_FUNCTION==2):
-        #TODO-add this
-        print "fitness=2 - add content"
-    if (WHICH_FITNESS_FUNCTION==3):
-        print "fitness=3"
+    else:
+        ##print "fitness=3"
         distr_array[0] = fitness[0]
         for i in range(1,N):
             distr_array[i] = distr_array[i-1] + fitness[i] #payoff[i]
 
-    #print "distr_array is ", distr_array
+    ##print "distr_array is ", distr_array
 
     #check to see if distr_array is correct - this should match wiht payoff matrix values
     #for i in range(0,N-1):
