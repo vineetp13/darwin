@@ -32,7 +32,7 @@ TODOS: For fun
 '''
 #*******************************
 # linear is 1, epsilon is 2 and exp is 3
-WHICH_FITNESS_FUNCTION=2
+WHICH_FITNESS_FUNCTION=3
 WHICH_RUN=1
 NUM_ITERATIONS = 1000
 
@@ -41,10 +41,10 @@ k = 10 #number of folks receiving feedback
 
 #Following-three are tweakable parameters
 #threshold to decide whether you will see feedbacks or not
-l = 1
+l = 4
 #if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 1
+V = 10
 
 #*****************
 #Setting up frequency, cost, value arrays
@@ -245,9 +245,9 @@ for ii in range(0,NUM_ITERATIONS):
         break
         #for i in range(0,N):
             #fitness[i] = fitness_mirror(payoff[i])
-    if (WHICH_FITNESS_FUNCTION==1):
-        print "should not be used"
-        break
+    #if (WHICH_FITNESS_FUNCTION==1): #No need to add this case
+        #print "goes to normal part of code - payoffs not fitness"
+        #break
     if (WHICH_FITNESS_FUNCTION==2):
         for i in range(0,N):
             fitness[i] = fitness_epsilon_factor(payoff[i])
