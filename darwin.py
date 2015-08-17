@@ -72,7 +72,9 @@ fitness = [0] * N
 # TODO-make it consistent (debug vs info)
 
 # filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
-PRINT_STRING = '-diminish-value-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_'+str(WHICH_RUN)
+PRINT_STRING = ('-diminish-value-l=' + str(l) + '-V=' + str(V)+'-N='
+                + str(N) + '-fitness=' + str(WHICH_FITNESS_FUNCTION)
+                + '-ITER=' + str(NUM_ITERATIONS) + '_' + str(WHICH_RUN))
 log.basicConfig(
     filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
     level=log.DEBUG,
