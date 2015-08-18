@@ -39,7 +39,7 @@ TODOS: For fun
 #  linear is 1, epsilon is 2 and exp is 3
 WHICH_FITNESS_FUNCTION = 3
 WHICH_RUN = 1
-NUM_ITERATIONS = 1000
+NUM_ITERATIONS = 20
 
 N = 1000  # number of players
 k = 10  # number of folks receiving feedback
@@ -71,19 +71,23 @@ fitness = [0] * N
 # graphs and oversee results in general), and debug to well.. debug
 # TODO-make it consistent (debug vs info)
 
+
+import time
+today = time.strftime("%x")
+
 # filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
 PRINT_STRING = ('-diminish-value-l=' + str(l) + '-V=' + str(V)+'-N='
                 + str(N) + '-fitness=' + str(WHICH_FITNESS_FUNCTION)
                 + '-ITER=' + str(NUM_ITERATIONS) + '_' + str(WHICH_RUN))
 log.basicConfig(
-    filename='graphs_outputs/outputs'+PRINT_STRING+'.TEXT',
+    filename='graphs_outputs' + str(today) + '/outputs'+PRINT_STRING+'.TEXT',
     level=log.DEBUG,
     format=' %(message)s',
     filemode='w')
 # format='%(asctime)s - %(levelname)s - %(message)s')
 # log.debug('This is a log message.')
 
-log.info("***********************")
+## log.info("***********************")
 
 # *************************
 # populate all the values above
@@ -133,7 +137,7 @@ for i in range(0, k):
         feedback_matrix[i][j] = j
     # v print feedback_matrix[i]
 
-log.info("# # # # ")
+## log.info("# # # # ")
 
 feedback_flag = -1  # a value of 1 denotes that the list needs to be repermuted
 
@@ -269,7 +273,7 @@ for ii in range(0, NUM_ITERATIONS):
     # probability distribution
     # # print sum_p, "<-- sum_p"
     # print fitness
-    log.debug(str(ii))
+    ## log.debug(str(ii))
     '''
     print "prev feq",final_freq_matrix[ii-2]
     print "freq", f
@@ -395,7 +399,7 @@ for ii in range(0, NUM_ITERATIONS):
 
     if sum_p == 0:
         print "sum_p is 0"
-        print toss, die_player, die_player_new
+        print toss, die_player, die_player_new, ii
         break
 
     # assign the die_player the chosen guys value
@@ -423,14 +427,19 @@ for ii in range(0, NUM_ITERATIONS):
     for xx in range(0, N):
         final_freq_matrix[ii][xx] = f[xx]
     # final_freq_matrix[ii] = f
-    log.info("'{0}'".format(final_freq_matrix[ii]))
+    ## log.info("'{0}'".format(final_freq_matrix[ii]))
 
+## log.debug(metric_pass_l_threshold)
+print "01"
+## log.debug(metric_fail_l_threshold)
+print "02"
+## log.debug(final_freq_matrix)
+print "03"
+## log.debug("----")
 
-log.debug(metric_pass_l_threshold)
-log.debug(metric_fail_l_threshold)
-log.debug(final_freq_matrix)
-log.debug("----")
-
+'''
+TODO - not priting anything to the log file - grows too big. 113MB for 10K
+iterations
 for i in range(0, NUM_ITERATIONS):
     log.debug("'{0}', '{1}'".format(i, sums_all[i]))  # (i, sums_all[i])
     log.debug("'{0}', '{1}'".format(kicked_all[i], replacers[i]))
@@ -438,7 +447,8 @@ for i in range(0, NUM_ITERATIONS):
     # print " |"
     # print " |"
     # print "\ /"
-
+print "04"
+'''
 
 # ************
 # Plots
@@ -451,11 +461,15 @@ pyplot.plot(x, metric_pass_l_threshold)
 pyplot.xlabel("Number of Iterations: 0 to "+str(NUM_ITERATIONS-1))
 pyplot.ylabel("Number of players who beat the threshold")
 pyplot.title("Success against threshold vs number of iterations")
-pyplot.savefig('graphs_outputs/success'+PRINT_STRING+'.png')
+pyplot.savefig('graphs_outputs' + str(today) + '/success'+PRINT_STRING+'.png')
+
+print "plot01"
 
 pyplot.clf()
 pyplot.cla()
 pyplot.close()
+
+print "plot02"
 
 # TODO-freq_bars depend upon number "k" - DO NOT FORGET
 freq_bars = [0] * NUM_ITERATIONS
@@ -471,6 +485,8 @@ for ii in range(0, NUM_ITERATIONS):
         # print int(final_freq_matrix[ii][j]*k)
         freq_bars[ii][int(final_freq_matrix[ii][j]*k)] += 1
 # print freq_bars
+
+print "0000x"
 
 # to plot this
 # TODO-show error bars/variance,
@@ -488,14 +504,20 @@ x_k = [-1] * k
 for i in range(0, k):
     x_k[i] = i
 
+print "plot03"
+
 pyplot.plot(x_k, avg_freq, color='green', linewidth="5.0")
 pyplot.xlabel("Frequency bins: 0.0 to 0.9")
 pyplot.ylabel("Number of players")
 pyplot.title("Average and per-iteration number of players in every frequency" +
              "bin")
-# print freq_bars
+# print freq_bars'
+
 for i in range(0, NUM_ITERATIONS):
-    width = i*(1.0/N)
-    pyplot.plot(x_k, freq_bars[i], color='blue', linewidth=width,
-                linestyle='dashed')  # , label=str(i))
-    pyplot.savefig('graphs_outputs/graph'+PRINT_STRING+'.png')
+    if i%(NUM_ITERATIONS/20.0)==0:  #
+        print ("priting ### " + str(i) + "out of " + str(NUM_ITERATIONS))
+        width = i*(1.0/N)
+        pyplot.plot(x_k, freq_bars[i], color='blue', linewidth=width,
+                    linestyle='dashed')  # , label=str(i))
+        pyplot.savefig('graphs_outputs' + str(today) + '/graph'+PRINT_STRING+'.png')
+print "plot04"
