@@ -35,21 +35,26 @@ TODOS: For fun
 1. Write a functional version eliminatng ALL the global variables
 2.
 '''
+# TODO-Check for existence of dirctory and files right hre - not later when
+# writing to it
+
+# TODO-on top of every output file, write how to parse it
+
 # *******************************
 #  linear is 1, epsilon is 2 and exp is 3
-WHICH_FITNESS_FUNCTION = 3
+WHICH_FITNESS_FUNCTION = 1
 WHICH_RUN = 1
-NUM_ITERATIONS = 20
+NUM_ITERATIONS = 10
 
 N = 1000  # number of players
 k = 10  # number of folks receiving feedback
 
 #  Following-three are tweakable parameters
 #  threshold to decide whether you will see feedbacks or not
-l = 4
+l = 7
 # if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 10
+V = 2
 
 # *****************
 # Setting up frequency, cost, value arrays
@@ -237,7 +242,7 @@ for ii in range(0, NUM_ITERATIONS):
             # chosen
             # TODO-introduce count dependent value
             value[chosen] += f[i]*v[i]*(1.0/count[chosen])  # increment value
-            # of feedbacks received by chosen
+            # of feedbacks received by chosen - diminishing returns
             cost[i] += c[i]*f[i]  # cost incurred to "i"th player in providing
             # feedback
             # print count[chosen], value[chosen], cost [i], "count, value, cost
@@ -251,7 +256,6 @@ for ii in range(0, NUM_ITERATIONS):
     #  randomly selecting player to die
     die_player = randint(0, N-1)
     sum_p = 0
-    sum_fitness = 0
 
     # calculating payoff values in payoff[i]
     for i in range(0, N):
@@ -331,10 +335,15 @@ for ii in range(0, NUM_ITERATIONS):
 
     # modify payoff matrix itself to keep things easy - also recompute sum_p
     # (since it clearly changes)
+
+    sum_p_old = sum_p
     sum_p = 0
     for i in range(0, N):
         payoff[i] -= payoff_min
         sum_p += payoff[i]
+
+    log.debug("sum_p: " + str(ii) + " " + str(sum_p_old) + " " + str(sum_p) +
+              " " + str(payoff_min))
 
     # l log.debug("new_shifted_payoff")
     # print("new_shifted_payoff")
@@ -344,9 +353,12 @@ for ii in range(0, NUM_ITERATIONS):
     # TODO-IMP--pull the above code inside linear fitness - later, if needed
     # TODO-just transform the payoff into fitness
 
+    sum_fitness = 0
     for i in range(0, N):
         sum_fitness += fitness[i]
     # # print "sum_fitness and ii", ii, sum_fitness
+
+    log.debug("sum_fitness: " + str(ii) + " " + str(sum_fitness))
 
     # TODO-currently the dist_array includes the current die_player, this needs
     # to be tweaked out - but it's okay right now  - easy to fix later - not
@@ -397,9 +409,16 @@ for ii in range(0, NUM_ITERATIONS):
         print toss, die_player
         break
 
-    if sum_p == 0:
+    if WHICH_FITNESS_FUNCTION == 1 and sum_p == 0:
         print "sum_p is 0"
         print toss, die_player, die_player_new, ii
+        log.debug("sum_p is 0: payoff matrix is", str(payoff))
+        break
+
+    if WHICH_FITNESS_FUNCTION != 1 and sum_fitness == 0:
+        print "sum_fitness is 0"
+        print toss, die_player, die_player_new, ii
+        log.debug("sum_fitness is 0: fitness matrix is", str(fitness))
         break
 
     # assign the die_player the chosen guys value
@@ -433,7 +452,10 @@ for ii in range(0, NUM_ITERATIONS):
 print "01"
 ## log.debug(metric_fail_l_threshold)
 print "02"
-## log.debug(final_freq_matrix)
+for j in range(0, NUM_ITERATIONS):
+    if(j%100 == 99):
+        log.info("'{0}'".format(final_freq_matrix[j]))
+## log.debug(final_freq_matrix[])
 print "03"
 ## log.debug("----")
 
@@ -516,7 +538,7 @@ pyplot.title("Average and per-iteration number of players in every frequency" +
 for i in range(0, NUM_ITERATIONS):
     if i%(NUM_ITERATIONS/20.0)==0:  #
         print ("priting ### " + str(i) + "out of " + str(NUM_ITERATIONS))
-        width = i*(1.0/N)
+        width = i*(1.0/NUM_ITERATIONS)
         pyplot.plot(x_k, freq_bars[i], color='blue', linewidth=width,
                     linestyle='dashed')  # , label=str(i))
         pyplot.savefig('graphs_outputs' + str(today) + '/graph'+PRINT_STRING+'.png')
