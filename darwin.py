@@ -42,19 +42,22 @@ TODOS: For fun
 
 # *******************************
 #  linear is 1, epsilon is 2 and exp is 3
-WHICH_FITNESS_FUNCTION = 1
+import sys
+
+WHICH_FITNESS_FUNCTION = float(sys.argv[2])
 WHICH_RUN = 1
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 1000
 
 N = 1000  # number of players
 k = 10  # number of folks receiving feedback
 
 #  Following-three are tweakable parameters
 #  threshold to decide whether you will see feedbacks or not
-l = 7
+l =  float(sys.argv[1])
+# print l, l==float(0)
 # if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 2
+V = 5
 
 # *****************
 # Setting up frequency, cost, value arrays
@@ -80,12 +83,12 @@ fitness = [0] * N
 import time
 today = time.strftime("%x")
 
-# filename='graphs_outputs/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
+# filename='graphs_outputs-/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
 PRINT_STRING = ('-diminish-value-l=' + str(l) + '-V=' + str(V)+'-N='
                 + str(N) + '-fitness=' + str(WHICH_FITNESS_FUNCTION)
                 + '-ITER=' + str(NUM_ITERATIONS) + '_' + str(WHICH_RUN))
 log.basicConfig(
-    filename='graphs_outputs' + str(today) + '/outputs'+PRINT_STRING+'.TEXT',
+    filename='graphs_outputs-' + str(today) + '/outputs'+PRINT_STRING+'.TEXT',
     level=log.DEBUG,
     format=' %(message)s',
     filemode='w')
@@ -342,8 +345,8 @@ for ii in range(0, NUM_ITERATIONS):
         payoff[i] -= payoff_min
         sum_p += payoff[i]
 
-    log.debug("sum_p: " + str(ii) + " " + str(sum_p_old) + " " + str(sum_p) +
-              " " + str(payoff_min))
+    # #log.debug("sum_p: " + str(ii) + " " + str(sum_p_old) + " " + str(sum_p) +
+            #   " " + str(payoff_min))
 
     # l log.debug("new_shifted_payoff")
     # print("new_shifted_payoff")
@@ -358,7 +361,7 @@ for ii in range(0, NUM_ITERATIONS):
         sum_fitness += fitness[i]
     # # print "sum_fitness and ii", ii, sum_fitness
 
-    log.debug("sum_fitness: " + str(ii) + " " + str(sum_fitness))
+    # #log.debug("sum_fitness: " + str(ii) + " " + str(sum_fitness))
 
     # TODO-currently the dist_array includes the current die_player, this needs
     # to be tweaked out - but it's okay right now  - easy to fix later - not
@@ -483,7 +486,7 @@ pyplot.plot(x, metric_pass_l_threshold)
 pyplot.xlabel("Number of Iterations: 0 to "+str(NUM_ITERATIONS-1))
 pyplot.ylabel("Number of players who beat the threshold")
 pyplot.title("Success against threshold vs number of iterations")
-pyplot.savefig('graphs_outputs' + str(today) + '/success'+PRINT_STRING+'.png')
+pyplot.savefig('graphs_outputs-' + str(today) + '/success'+PRINT_STRING+'.png')
 
 print "plot01"
 
@@ -541,5 +544,5 @@ for i in range(0, NUM_ITERATIONS):
         width = i*(1.0/NUM_ITERATIONS)
         pyplot.plot(x_k, freq_bars[i], color='blue', linewidth=width,
                     linestyle='dashed')  # , label=str(i))
-        pyplot.savefig('graphs_outputs' + str(today) + '/graph'+PRINT_STRING+'.png')
+        pyplot.savefig('graphs_outputs-' + str(today) + '/graph'+PRINT_STRING+'.png')
 print "plot04"
