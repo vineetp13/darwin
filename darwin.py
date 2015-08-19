@@ -57,7 +57,7 @@ l =  float(sys.argv[1])
 # print l, l==float(0)
 # if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 5
+V = 10
 
 # *****************
 # Setting up frequency, cost, value arrays
@@ -280,7 +280,7 @@ for ii in range(0, NUM_ITERATIONS):
     # probability distribution
     # # print sum_p, "<-- sum_p"
     # print fitness
-    ## log.debug(str(ii))
+    log.debug(str(ii))
     '''
     print "prev feq",final_freq_matrix[ii-2]
     print "freq", f
@@ -345,8 +345,8 @@ for ii in range(0, NUM_ITERATIONS):
         payoff[i] -= payoff_min
         sum_p += payoff[i]
 
-    # #log.debug("sum_p: " + str(ii) + " " + str(sum_p_old) + " " + str(sum_p) +
-            #   " " + str(payoff_min))
+    log.debug("sum_p: " + str(ii) + " " + str(sum_p_old) + " " + str(sum_p) +
+               " " + str(payoff_min))
 
     # l log.debug("new_shifted_payoff")
     # print("new_shifted_payoff")
