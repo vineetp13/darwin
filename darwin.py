@@ -46,18 +46,18 @@ import sys
 
 WHICH_FITNESS_FUNCTION = float(sys.argv[2])
 WHICH_RUN = 1
-NUM_ITERATIONS = 1000
+NUM_ITERATIONS = 10000
 
 N = 1000  # number of players
 k = 10  # number of folks receiving feedback
 
 #  Following-three are tweakable parameters
 #  threshold to decide whether you will see feedbacks or not
-l =  float(sys.argv[1])
+l = 0.0
 # print l, l==float(0)
 # if using constant values for Cost and Value of feedback for all players
 C = 1
-V = 10
+V = float(sys.argv[1])
 
 # *****************
 # Setting up frequency, cost, value arrays
