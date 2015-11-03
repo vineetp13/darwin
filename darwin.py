@@ -45,7 +45,7 @@ TODOS: For fun
 # *******************************
 #  linear is 1, epsilon is 2 and exp is 3
 import sys
-for thresh in range(0,2):
+for thresh in range(0,3):
     WHICH_FITNESS_FUNCTION = 1#float(sys.argv[2])
     WHICH_RUN = 1
     NUM_ITERATIONS = 1000
@@ -54,12 +54,12 @@ for thresh in range(0,2):
 
     #  Following-three are tweakable parameters
     #  threshold to decide whether you will see feedbacks or not
-    l = 1.0
+    l = 1.0+thresh*5.0
     print l
     # print l, l==float(0)
     # if using constant values for Cost and Value of feedback for all players
     C = 1
-    V = 2.0+thresh*9.0
+    V = 8#10#2.0+thresh*2.0
     print V
     # *****************
     # Setting up frequency, cost, value arrays
@@ -86,8 +86,8 @@ for thresh in range(0,2):
     today = time.strftime("%x")
 
     # filename='graphs_outputs-/outputs'+'-l='+str(l)+'-V='+str(V)+'-N='+str(N)+'-fitness='+str(WHICH_FITNESS_FUNCTION)+'-ITER='+str(NUM_ITERATIONS)+'_1.TEXT',
-    PRINT_STRING = ('-diminish-value-l=' + str(l) +
-                    #'-V=' + str(V)+
+    PRINT_STRING = ('-diminish-value-l=' #+ str(l) +
+                    '-V=' + str(V)+
                     '-N='
                     + str(N) + '-fitness=' + str(WHICH_FITNESS_FUNCTION)
                     + '-ITER=' + str(NUM_ITERATIONS) + '_' + str(WHICH_RUN))
@@ -481,29 +481,34 @@ for thresh in range(0,2):
 
     # ************
     # Plots
-    
+
+    colors = ['red','green','blue','brown','black', 'pink']
+
     x = [-1] * NUM_ITERATIONS
     for i in range(0, NUM_ITERATIONS):
         x[i] = i
-
-    pyplot.plot(x, metric_pass_l_threshold)
+    '''
+    width = thresh+1#V*0.5#(thresh+1)*2.0
+    pyplot.plot(x, metric_pass_l_threshold, color=colors[thresh], linewidth=width)
     pyplot.xlabel("Iteration # ")#0 to "+str(NUM_ITERATIONS-1))
-    pyplot.ylabel("Number of players providing feedbacks more than threshold")
+    pyplot.ylabel("Number of players providing feedbacks greater than threshold")
     ##pyplot.title("Success against threshold vs number of iterations")
-    #pyplot.legend(['7', '7.25', '7.5', '7.75', '8'], loc='upper left')
+    pyplot.legend(['7', '7.25', '7.5', '7.75', '8'], loc='upper left')
     #pyplot.legend(['1', '2','3','4','5','6','7','8','9','10'], loc='upper left')
-    pyplot.legend(['1','10'], loc='upper left')
+    #pyplot.legend(['2','4','6','8','10'], loc='upper left')
+    #pyplot.legend(['1','10'], loc='upper left')
     pyplot.savefig('graphs_outputs-' + str(today) + '/success'+PRINT_STRING+'.png')
 
     print "plot01"
-
-    '''
 
     pyplot.clf()
     pyplot.cla()
     pyplot.close()
 
     print "plot02"
+
+    '''
+
 
     # TODO-freq_bars depend upon number "k" - DO NOT FORGET
     freq_bars = [0] * NUM_ITERATIONS
@@ -521,7 +526,7 @@ for thresh in range(0,2):
     # print freq_bars
 
     print "0000x"
-
+    '''
     # to plot this
     # TODO-show error bars/variance,
     # currently showing average with all other iterations results
@@ -533,11 +538,12 @@ for thresh in range(0,2):
 
     # print avg_freq
     # print sum(avg_freq)
-
+    '''
     x_k = [-1] * k
     for i in range(0, k):
-        x_k[i] = i
+        x_k[i] = i*0.1
 
+    '''
     print "plot03"
 
     pyplot.plot(x_k, avg_freq, color='green', linewidth="5.0")
@@ -556,3 +562,14 @@ for thresh in range(0,2):
             pyplot.savefig('graphs_outputs-' + str(today) + '/graph'+PRINT_STRING+'.png')
     print "plot04"
     '''
+    width = thresh+1
+    pyplot.plot(x_k, freq_bars[NUM_ITERATIONS-1], linewidth=width, color=colors[thresh])#, linestyle='dashed')
+    pyplot.xlabel("Frequency of providing feedback")
+    pyplot.ylabel("Number of players")
+
+initial_freq = [100] * k
+pyplot.plot(x_k, initial_freq,  color='black', linestyle='dashed')#, linestyle='dashed')
+pyplot.legend(['thresh=1','thresh=6', 'thresh=11', "Initial distr"], loc='upper right')
+pyplot.savefig('graphs_outputs-' + str(today) + '/final-freq'+PRINT_STRING+'.png')
+# , label=str(i))
+print "plot05"
